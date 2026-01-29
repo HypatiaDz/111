@@ -141,7 +141,10 @@
                     <div class="card">
                         <div class="card-top">
                             <div class="card-icon"><img src="${ex.icon}"></div>
-                            <div><div class="card-title">${ex.name}</div>${ex.ver ? `<p style="color: var(--text-secondary); font-size: 0.75rem;">Version: ${ex.ver}</p>` : ''}</div>
+                            <div>
+                                <div class="card-title">${ex.name}</div>
+                                ${ex.ver ? `<p style="color: var(--text-secondary); font-size: 0.75rem;">Version: ${ex.ver}</p>` : ''}
+                            </div>
                         </div>
                         <div class="status-group">${statusHtml}</div>
                         ${btnHtml}
@@ -167,7 +170,6 @@
 
         async function loadLinks() {
             try {
-                // Link GitHub chuẩn của bạn
                 const response = await fetch('https://raw.githubusercontent.com/HypatiaDz/bnmhuy/main/links.json?t=' + Date.now());
                 const data = await response.json();
                 const update = (id, link, prefix) => {
@@ -177,10 +179,13 @@
                     if (link && link !== "#" && link !== "" && link !== "link") {
                         btn.href = link; 
                         btn.onclick = () => showToast(`Đang mở link tải...`);
-                        st.className = "mini-status status-online"; st.innerText = `${prefix}: Online`;
+                        st.className = "mini-status status-online"; 
+                        st.innerText = `${prefix}: Online`;
                     } else {
-                        btn.href = "javascript:void(0)"; btn.onclick = () => showToast(`Bản này đang bảo trì!`);
-                        st.className = "mini-status status-offline"; st.innerText = `${prefix}: Bảo trì`;
+                        btn.href = "javascript:void(0)"; 
+                        btn.onclick = () => showToast(`Bản này đang bảo trì!`);
+                        st.className = "mini-status status-offline"; 
+                        st.innerText = `${prefix}: Bảo trì`;
                     }
                 };
                 androidExecutors.forEach(ex => ex.types.forEach(t => update(`${ex.id}-${t}`, data[`${ex.id}_${t}`], t.toUpperCase())));

@@ -161,29 +161,26 @@
             setTimeout(() => { 
                 toast.style.opacity = '0'; 
                 toast.style.transition = '0.5s'; 
-                setTimeout(() => toast.remove(), 500); 
+                setTimeout(() => { toast.remove(); }, 500); 
             }, 3000);
         }
 
         async function loadLinks() {
             try {
-                // Sử dụng đường dẫn GitHub của bạn để dữ liệu luôn mới nhất
+                // Link GitHub chuẩn của bạn
                 const response = await fetch('https://raw.githubusercontent.com/HypatiaDz/bnmhuy/main/links.json?t=' + Date.now());
                 const data = await response.json();
                 const update = (id, link, prefix) => {
                     const btn = document.getElementById(`btn-${id}`);
                     const st = document.getElementById(`status-${id}`);
                     if (!btn || !st) return;
-                    if (link && link !== "#" && link !== "") {
+                    if (link && link !== "#" && link !== "" && link !== "link") {
                         btn.href = link; 
                         btn.onclick = () => showToast(`Đang mở link tải...`);
-                        st.className = "mini-status status-online"; 
-                        st.innerText = `${prefix}: Online`;
+                        st.className = "mini-status status-online"; st.innerText = `${prefix}: Online`;
                     } else {
-                        btn.href = "javascript:void(0)"; 
-                        btn.onclick = () => showToast(`Bản này đang bảo trì!`);
-                        st.className = "mini-status status-offline"; 
-                        st.innerText = `${prefix}: Bảo trì`;
+                        btn.href = "javascript:void(0)"; btn.onclick = () => showToast(`Bản này đang bảo trì!`);
+                        st.className = "mini-status status-offline"; st.innerText = `${prefix}: Bảo trì`;
                     }
                 };
                 androidExecutors.forEach(ex => ex.types.forEach(t => update(`${ex.id}-${t}`, data[`${ex.id}_${t}`], t.toUpperCase())));
@@ -213,7 +210,6 @@
         }
         window.addEventListener('resize', initStars); initStars(); animate();
         
-        // Khởi chạy load links
         loadLinks();
         setInterval(loadLinks, 30000);
     </script>

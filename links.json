@@ -1,6 +1,20 @@
 {
-  "adr_vng": "https://link-cua-ban.com",
-  "adr_qt": "https://link-cua-ban.com",
-  "ios_vng": "https://link-cua-ban.com",
-  "pc_version": "https://link-cua-ban.com"
+  "arceus_qt": "https://link-tai-arceus-global.com",
+  "arceus_vng": "#",
+  "codex_qt": "https://link-tai-codex-global.com",
+  "codex_vng": "https://link-tai-codex-vng.com",
+  "delta_qt": "https://link-tai-delta.com",
+  "ronix_qt": "https://link-tai-ronix-global.com",
+  "ronix_vng": "#",
+  "trigon_qt": "https://link-tai-trigon.com",
+  "vegax_qt": "https://link-tai-vegax.com",
+  "fluxusz_qt": "https://link-tai-fluxusz-global.com",
+  "fluxusz_vng": "#",
+  "cryptic_qt": "https://link-tai-cryptic-global.com",
+  "cryptic_vng": "https://link-tai-cryptic-vng.com",
+  "xeno": "https://link-tai-xeno-pc.com",
+  "bunni": "https://link-tai-bunni-pc.com",
+  "ronix_pc": "https://link-tai-ronix-pc.com",
+  "atlantis": "https://link-tai-atlantis-pc.com",
+  "velocity_pc": "https://link-tai-velocity-pc.com"
 }

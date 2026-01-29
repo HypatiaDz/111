@@ -4,6 +4,7 @@
     "codex_qt": "link",
     "codex_vng": "link",
     "delta_qt": "link",
+    "delta_vng": "link", 
     "ronix_qt": "link",
     "ronix_vng": "#",
     "trigon_qt": "link",
@@ -11,10 +12,10 @@
     "fluxusz_qt": "link",
     "fluxusz_vng": "#",
     "cryptic_qt": "link",
-    "cryptic_vng": "#",
+    "cryptic_vng": "link",
     "xeno": "link",
-    "bunni": "https://gofile.io/d/jeVScR",
-    "ronix_pc": "https://zufile.com/download/p85YFAp0Hc",
+    "bunni": "link",
+    "ronix_pc": "link",
     "atlantis": "link",
     "velocity_pc": "link"
 }

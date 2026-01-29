@@ -170,13 +170,15 @@
 
         async function loadLinks() {
             try {
+                // Link raw GitHub của bạn - Luôn lấy bản mới nhất
                 const response = await fetch('https://raw.githubusercontent.com/HypatiaDz/bnmhuy/main/links.json?t=' + Date.now());
                 const data = await response.json();
                 const update = (id, link, prefix) => {
                     const btn = document.getElementById(`btn-${id}`);
                     const st = document.getElementById(`status-${id}`);
                     if (!btn || !st) return;
-                    if (link && link !== "#" && link !== "" && link !== "link") {
+                    // Kiểm tra link thật sự có bắt đầu bằng http hay không
+                    if (link && link.startsWith('http')) {
                         btn.href = link; 
                         btn.onclick = () => showToast(`Đang mở link tải...`);
                         st.className = "mini-status status-online"; 

@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Orbitron:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
     <style>
-        /* GIỮ NGUYÊN HỆ THỐNG BIẾN CỦA BẠN */
         :root {
             --primary: #5865f2;
             --primary-dark: #4752c4;
@@ -106,7 +105,6 @@
     </div>
 
     <script>
-        // DANH SÁCH ANDROID - CẬP NHẬT ẢNH & DELTA VNG
         const androidExecutors = [
             { id: 'arceus', name: 'Arceus X NEO', ver: '2.703', icon: 'https://sf-static.upanhlaylink.com/img/image_2025091341b69c6afa4e02709bf1ba299bdbafbd.jpg', types: ['qt', 'vng'] },
             { id: 'codex', name: 'Codex', ver: '2.703', icon: 'https://codex.lol/static/icons/icon.svg', types: ['qt', 'vng'] },
@@ -118,7 +116,6 @@
             { id: 'cryptic', name: 'Cryptic', ver: '2.704', icon: 'https://getcryptic.net/logo.png', types: ['qt', 'vng'] }
         ];
 
-        // DANH SÁCH PC - CẬP NHẬT ẢNH & Tên chính xác cho links.json
         const pcExecutors = [
             { id: 'xeno', name: 'Xeno PC', icon: 'https://www.xeno.onl/images/xeno.png' },
             { id: 'bunni', name: 'Bunni Xeno', icon: 'https://sf-static.upanhlaylink.com/img/image_20251107ec93fb41bcff1cb31ece2f29c4c3d623.jpg' },
@@ -127,7 +124,6 @@
             { id: 'velocity_pc', name: 'Velocity PC', icon: 'https://files.catbox.moe/tj6brv.png' }
         ];
 
-        // RENDER HÀM CHUNG
         function renderExecutors(list, containerId, isPc = false) {
             const container = document.getElementById(containerId);
             list.forEach(ex => {
@@ -156,28 +152,6 @@
         renderExecutors(androidExecutors, 'android-grid');
         renderExecutors(pcExecutors, 'pc-grid', true);
 
-        // UI LOGIC
-        function toggleTheme() {
-            const body = document.body; const icon = document.getElementById('theme-icon');
-            if (body.getAttribute('data-theme') === 'light') { body.removeAttribute('data-theme'); icon.className = 'fas fa-sun'; }
-            else { body.setAttribute('data-theme', 'light'); icon.className = 'fas fa-moon'; }
-        }
-
-        const canvas = document.getElementById('galaxy'); const ctx = canvas.getContext('2d');
-        let stars = [];
-        function initStars() {
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight; stars = [];
-            for(let i=0; i<100; i++) { stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 2, speed: Math.random() * 0.5 }); }
-        }
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = document.body.hasAttribute('data-theme') ? "#333" : "#fff";
-            stars.forEach(star => { ctx.beginPath(); ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2); ctx.fill(); star.y += star.speed; if(star.y > canvas.height) star.y = 0; });
-            requestAnimationFrame(animate);
-        }
-        window.addEventListener('resize', initStars); initStars(); animate();
-
-        // TOAST SYSTEM - ĐÃ FIX LỖI DẤU NGOẶC ) DÒNG 234
         function showToast(message) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -191,40 +165,52 @@
             }, 3000);
         }
 
-        // DỮ LIỆU TỪ GitHub links.json - ĐÃ FIX URL ĐỂ ÉP TẢI BẢN MỚI
         async function loadLinks() {
             try {
-                const response = await fetch('https://raw.githubusercontent.com/HypatiaDz/bnmhuy/main/links.json?t=' + Date.now());
+                const response = await fetch('https://raw.githubusercontent.com/HypatiaDz/111/main/links.json?t=' + Date.now());
                 const data = await response.json();
-
                 const update = (id, link, prefix) => {
                     const btn = document.getElementById(`btn-${id}`);
                     const st = document.getElementById(`status-${id}`);
                     if (!btn || !st) return;
-
-                    // Nếu link bắt đầu bằng http mới tính là Online
                     if (link && link.startsWith('http')) {
-                        btn.href = link;
+                        btn.href = link; 
+                        btn.target = "_blank";
                         btn.onclick = () => showToast(`Đang mở link tải...`);
-                        st.className = "mini-status status-online";
+                        st.className = "mini-status status-online"; 
                         st.innerText = `${prefix}: Online`;
                     } else {
-                        btn.href = "javascript:void(0)";
+                        btn.href = "javascript:void(0)"; 
                         btn.onclick = () => showToast(`Bản này đang bảo trì!`);
-                        st.className = "mini-status status-offline";
+                        st.className = "mini-status status-offline"; 
                         st.innerText = `${prefix}: Bảo trì`;
                     }
                 };
-
-                // Cập nhật trạng thái từng Executor
                 androidExecutors.forEach(ex => ex.types.forEach(t => update(`${ex.id}-${t}`, data[`${ex.id}_${t}`], t.toUpperCase())));
                 pcExecutors.forEach(ex => update(ex.id, data[ex.id], 'PC'));
-
             } catch (e) { console.log("Lỗi đồng bộ dữ liệu: ", e); }
         }
 
-        loadLinks();
-        setInterval(loadLinks, 30000);
+        function toggleTheme() {
+            const body = document.body; const icon = document.getElementById('theme-icon');
+            if (body.getAttribute('data-theme') === 'light') { body.removeAttribute('data-theme'); icon.className = 'fas fa-sun'; }
+            else { body.setAttribute('data-theme', 'light'); icon.className = 'fas fa-moon'; }
+        }
+        const canvas = document.getElementById('galaxy'); const ctx = canvas.getContext('2d');
+        let stars = [];
+        function initStars() {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight; stars = [];
+            for(let i=0; i<100; i++) { stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 2, speed: Math.random() * 0.5 }); }
+        }
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = document.body.hasAttribute('data-theme') ? "#333" : "#fff";
+            stars.forEach(star => { ctx.beginPath(); ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2); ctx.fill(); star.y += star.speed; if(star.y > canvas.height) star.y = 0; });
+            requestAnimationFrame(animate);
+        }
+        window.addEventListener('resize', initStars); initStars(); animate();
+        loadLinks(); 
+        setInterval(loadLinks, 15000);
     </script>
 </body>
 </html>

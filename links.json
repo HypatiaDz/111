@@ -1,78 +1,21 @@
 {
-    "arceus_qt": {
-        "url": "https://www.mediafire.com/file/4tctykbghls2hac/Roblox_-_Arceus_X_v5_1.2.6.apk/file",
-        "last_update": 1770252780
-    },
-    "arceus_vng": {
-        "url": "https://www.mediafire.com/file/zxmdtejwocz4mw1/Roblox_-_VNG_Arceus_X_NEO_1.9.9.apk/file",
-        "last_update": 1738716000
-    },
-    "codex_qt": {
-        "url": "https://www.mediafire.com/file/qnzbaba4c8rjncw/Codex+V2.705.924.apk/file",
-        "last_update": 1738716000
-    },
-    "codex_vng": {
-        "url": "#",
-        "last_update": 0
-    },
-    "delta_qt": {
-        "url": "https://delta.filenetwork.vip/android.html",
-        "last_update": 1738716000
-    },
-    "delta_vng": {
-        "url": "https://www.mediafire.com/file/pgqx58unc37pt8o/Delta_Vng_V2.704.1057_Up.apk/file",
-        "last_update": 1738716000
-    },
-    "ronix_qt": {
-        "url": "https://www.mediafire.com/file/47p8jui29b2yhzh/Ronix_qu\u1ed1c_t\u1ebf_V2.704_64Bit.apk/file",
-        "last_update": 1738716000
-    },
-    "ronix_vng": {
-        "url": "https://www.mediafire.com/file/zar9c5u4ufusc77/Ronix_VNG_V2.704_64Bit.apk/file",
-        "last_update": 1738716000
-    },
-    "trigon_qt": {
-        "url": "#",
-        "last_update": 0
-    },
-    "vegax_qt": {
-        "url": "https://github.com/1f0yt/community/releases/download/Vegax/Vega.X.apk",
-        "last_update": 1738716000
-    },
-    "fluxusz_qt": {
-        "url": "https://www.mediafire.com/file/bvim8skzpiele2o/FluxusZ_qu%E1%BB%91c_t%E1%BA%BF_V2.704_64Bit.apk/file",
-        "last_update": 1738716000
-    },
-    "fluxusz_vng": {
-        "url": "https://www.mediafire.com/file/cvs8kz0wfd9d9w7/FluxusZ_VNG_V2.704_64Bit.apk/file",
-        "last_update": 1738716000
-    },
-    "cryptic_qt": {
-        "url": "#",
-        "last_update": 0
-    },
-    "cryptic_vng": {
-        "url": "#",
-        "last_update": 0
-    },
-    "xeno": {
-        "url": "https://gofile.io/d/mJUu1U",
-        "last_update": 1738716000
-    },
-    "bunni": {
-        "url": "https://gofile.io/d/jeVScR",
-        "last_update": 1738716000
-    },
-    "ronix_pc": {
-        "url": "https://zufile.com/download/p85YFAp0Hc",
-        "last_update": 1738716000
-    },
-    "atlantis": {
-        "url": "https://gofile.io/d/Hp5nTi",
-        "last_update": 1738716000
-    },
-    "velocity_pc": {
-        "url": "https://gofile.io/d/AvJplh",
-        "last_update": 1738716000
-    }
+    "arceus_qt": "https://www.mediafire.com/file/4tctykbghls2hac/Roblox_-_Arceus_X_v5_1.2.6.apk/file",
+    "arceus_vng": "https://www.mediafire.com/file/zxmdtejwocz4mw1/Roblox_-_VNG_Arceus_X_NEO_1.9.9.apk/file",
+    "codex_qt": "https://www.mediafire.com/file/qnzbaba4c8rjncw/Codex+V2.705.924.apk/file",
+    "codex_vng": "#",
+    "delta_qt": "https://delta.filenetwork.vip/android.html",
+    "delta_vng": "https://www.mediafire.com/file/pgqx58unc37pt8o/Delta_Vng_V2.704.1057_Up.apk/file",
+    "ronix_qt": "https://www.mediafire.com/file/47p8jui29b2yhzh/Ronix_quốc_tế_V2.704_64Bit.apk/file",
+    "ronix_vng": "https://www.mediafire.com/file/zar9c5u4ufusc77/Ronix_VNG_V2.704_64Bit.apk/file",
+    "trigon_qt": "#",
+    "vegax_qt": "https://github.com/1f0yt/community/releases/download/Vegax/Vega.X.apk",
+    "fluxusz_qt": "https://www.mediafire.com/file/bvim8skzpiele2o/FluxusZ_quốc_tế_V2.704_64Bit.apk/file",
+    "fluxusz_vng": "https://www.mediafire.com/file/cvs8kz0wfd9d9w7/FluxusZ_VNG_V2.704_64Bit.apk/file",
+    "cryptic_qt": "#",
+    "cryptic_vng": "#",
+    "xeno": "https://gofile.io/d/mJUu1U",
+    "bunni": "https://gofile.io/d/jeVScR",
+    "ronix_pc": "https://zufile.com/download/p85YFAp0Hc",
+    "atlantis": "https://gofile.io/d/Hp5nTi",
+    "velocity_pc": "https://gofile.io/d/AvJplh"
 }

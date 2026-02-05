@@ -1,5 +1,8 @@
 {
-    "arceus_qt": "https://www.mediafire.com/file/4tctykbghls2hac/Roblox_-_Arceus_X_v5_1.2.6.apk/file",
+    "arceus_qt": {
+        "url": "https://www.mediafire.com/file/4tctykbghls2hac/Roblox_-_Arceus_X_v5_1.2.6.apk/file",
+        "last_update": 1770252780
+    },
     "arceus_vng": "https://www.mediafire.com/file/zxmdtejwocz4mw1/Roblox_-_VNG_Arceus_X_NEO_1.9.9.apk/file",
     "codex_qt": "https://www.mediafire.com/file/qnzbaba4c8rjncw/Codex+V2.705.924.apk/file",
     "codex_vng": "link",

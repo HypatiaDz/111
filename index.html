@@ -10,83 +10,448 @@
 
     <style>
         :root {
+            /* Dark theme (mặc định) */
+            --bg: #050505;
+            --card-bg: rgba(13, 13, 25, 0.94);
+            --card-border: rgba(88, 101, 242, 0.18);
+            --text: #f0f0ff;
+            --text-secondary: #aaa;
             --primary: #5865f2;
             --primary-dark: #4752c4;
-            --accent: #00b0f4;
-            --darker: #050505;
-            --light: #ffffff;
-            --glass: rgba(255, 255, 255, 0.08);
-            --glass-dark: rgba(255, 255, 255, 0.05);
-            --blur: 15px;
-            --shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-            --glow: 0 0 25px rgba(88, 101, 242, 0.35);
-            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            --card-bg: #0d0d0d;
-            --card-border: rgba(255, 255, 255, 0.05);
-            --text-color: #ffffff;
-            --text-secondary: #a0a0a0;
-            --status-online: #00ff88;
-            --status-offline: #ff3b30;
+            --accent: #00d4ff;
+            --status-online: #00ff9d;
+            --status-offline: #ff5555;
+            --glow: 0 0 35px rgba(88, 101, 242, 0.55);
+            --glow-accent: 0 0 35px rgba(0, 212, 255, 0.45);
+            --toast-bg-success: linear-gradient(135deg, #00c896, #00ff9d);
+            --toast-bg-error: linear-gradient(135deg, #ff5555, #ff3366);
+            --shadow: 0 10px 30px rgba(0,0,0,0.6);
+            --discord: #5865f2;
         }
 
         [data-theme="light"] {
-            --darker: #f0f2f5; --light: #1a1a1a; --card-bg: #ffffff; --card-border: rgba(0, 0, 0, 0.08); --text-color: #1a1a1a; --text-secondary: #555555;
+            --bg: #f5f7ff;
+            --card-bg: #ffffff;
+            --card-border: rgba(88, 101, 242, 0.12);
+            --text: #1a1a3d;
+            --text-secondary: #666;
+            --primary: #4c55d9;
+            --primary-dark: #3a42c0;
+            --accent: #0099cc;
+            --status-online: #00b386;
+            --status-offline: #e63946;
+            --glow: 0 0 25px rgba(76, 85, 217, 0.35);
+            --glow-accent: 0 0 25px rgba(0, 153, 204, 0.35);
+            --toast-bg-success: linear-gradient(135deg, #00b386, #00cc99);
+            --toast-bg-error: linear-gradient(135deg, #e63946, #d00000);
+            --shadow: 0 8px 25px rgba(0,0,0,0.12);
+            --discord: #5865f2;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background-color: var(--darker); color: var(--text-color); font-family: 'Inter', sans-serif; overflow-x: hidden; min-height: 100vh; transition: background-color 0.5s ease; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background 0.4s ease, color 0.4s ease;
+        }
 
-        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 10001; }
-        .toast { background: var(--primary); color: white; padding: 12px 20px; border-radius: 10px; margin-top: 10px; font-weight: 600; box-shadow: var(--shadow); animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        
-        #galaxy { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; opacity: 0.4; pointer-events: none; }
-        .background-decor { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; }
-        .gradient-sphere { position: absolute; width: 500px; height: 500px; border-radius: 50%; filter: blur(120px); animation: moveSphere 25s infinite alternate ease-in-out; opacity: 0.4; }
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10001;
+        }
+
+        .toast {
+            min-width: 280px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            margin-top: 12px;
+            font-weight: 600;
+            color: white;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideInToast 0.4s ease-out forwards;
+            opacity: 0;
+        }
+
+        .toast.success { background: var(--toast-bg-success); }
+        .toast.error   { background: var(--toast-bg-error); }
+
+        .toast i { font-size: 1.3rem; }
+
+        @keyframes slideInToast {
+            from { transform: translateX(120%); opacity: 0; }
+            to   { transform: translateX(0); opacity: 1; }
+        }
+
+        #galaxy {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            opacity: 0.4;
+            pointer-events: none;
+            transition: opacity 0.6s;
+        }
+
+        [data-theme="light"] #galaxy { opacity: 0.15; }
+
+        .background-decor {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .gradient-sphere {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            filter: blur(120px);
+            animation: moveSphere 26s infinite alternate ease-in-out;
+            opacity: 0.4;
+        }
+
         .sphere-one { background: var(--primary); top: -15%; left: -10%; }
         .sphere-two { background: var(--accent); bottom: -15%; right: -5%; }
 
         .container { max-width: 1300px; margin: 0 auto; padding: 0 30px; }
-        .header { text-align: center; padding: 100px 20px 60px; }
-        .header h1 { font-family: 'Orbitron', sans-serif; font-size: clamp(2.5rem, 10vw, 4rem); background: linear-gradient(135deg, #00ff88 0%, #0080ff 50%, #00ff88 100%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: flowText 5s linear infinite; margin-bottom: 20px; letter-spacing: 5px; }
-        @keyframes flowText { to { background-position: 200% center; } }
 
-        .section-header { display: flex; align-items: center; margin: 40px 0 25px; padding-bottom: 20px; border-bottom: 2px solid var(--glass); position: relative; }
-        .section-header::after { content: ""; position: absolute; bottom: -2px; left: 0; width: 100px; height: 2px; background: var(--primary); }
-        .section-header i { font-size: 1.5rem; color: var(--primary); margin-right: 15px; }
+        .header { text-align: center; padding: 100px 20px 50px; }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; }
+        .header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2.8rem, 10vw, 4.5rem);
+            background: linear-gradient(90deg, #00ff9d, var(--primary), var(--accent));
+            background-size: 300%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientFlow 7s ease infinite;
+            margin-bottom: 15px;
+            letter-spacing: 5px;
+        }
 
-        .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 24px; padding: 25px; transition: var(--transition); box-shadow: var(--shadow); position: relative; overflow: hidden; }
-        .card:hover { transform: translateY(-10px); border-color: var(--primary); box-shadow: var(--glow); }
-        .card-top { display: flex; align-items: center; margin-bottom: 20px; gap: 15px; }
-        .card-icon { width: 55px; height: 55px; background: var(--glass-dark); border-radius: 15px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--card-border); overflow: hidden; }
+        @keyframes gradientFlow {
+            0%,100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .search-container {
+            max-width: 500px;
+            margin: 0 auto 40px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 20px 14px 50px;
+            border-radius: 50px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--card-border);
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        [data-theme="light"] .search-input {
+            background: rgba(0,0,0,0.05);
+            border-color: rgba(0,0,0,0.15);
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(88,101,242,0.4);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 50px 0 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--card-border);
+        }
+
+        .section-header h2 { font-size: 1.8rem; font-weight: 700; }
+
+        .last-update {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .refresh-btn {
+            background: rgba(88, 101, 242, 0.15);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(88, 101, 242, 0.3);
+            box-shadow: 0 0 15px rgba(88, 101, 242, 0.4);
+        }
+
+        .refresh-btn i { transition: transform 0.4s; }
+        .refresh-btn:active i { transform: rotate(360deg); }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 26px;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 22px;
+            background: linear-gradient(45deg, transparent, rgba(0, 212, 255, 0.18), transparent);
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .card:hover::before { opacity: 1; }
+
+        .card:hover {
+            transform: translateY(-12px) scale(1.015);
+            border-color: var(--accent);
+            box-shadow: 
+                0 20px 50px rgba(0,0,0,0.4),
+                var(--glow),
+                var(--glow-accent);
+        }
+
+        [data-theme="light"] .card:hover {
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15), var(--glow);
+        }
+
+        .badge-new {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: linear-gradient(135deg, #ff3366, #ff6b6b);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(255, 51, 102, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 5;
+            animation: pulseBadge 2s infinite;
+        }
+
+        @keyframes pulseBadge {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 0.9; }
+        }
+
+        .card-top { display: flex; align-items: center; gap: 15px; margin-bottom: 18px; }
+        .card-icon { width: 60px; height: 60px; border-radius: 16px; overflow: hidden; border: 1px solid var(--card-border); }
         .card-icon img { width: 100%; height: 100%; object-fit: cover; }
-        .card-title { font-size: 1.25rem; font-weight: 700; color: var(--light); }
-        
-        .status-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
-        .mini-status { display: inline-flex; align-items: center; padding: 5px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 800; width: fit-content; text-transform: uppercase; }
-        .status-online { background: rgba(0, 255, 136, 0.15); color: var(--status-online); }
-        .status-offline { background: rgba(255, 59, 48, 0.15); color: var(--status-offline); }
+        .card-title { font-size: 1.3rem; font-weight: 700; }
 
-        .button-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn-full { grid-template-columns: 1fr; }
+        .status-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+        .mini-status {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            width: fit-content;
+            text-transform: uppercase;
+        }
 
-        .download-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; background: var(--primary); color: white; text-decoration: none; padding: 12px; border-radius: 12px; font-weight: 600; font-size: 0.9rem; transition: var(--transition); }
-        .btn-vng { background: transparent; border: 1px solid var(--card-border); }
-        .download-btn:hover { background: var(--primary-dark); transform: scale(1.02); }
+        .status-online { background: rgba(0,255,157,0.15); color: var(--status-online); }
+        .status-offline { background: rgba(255,85,85,0.15); color: var(--status-offline); }
 
-        .theme-toggle { position: fixed; top: 30px; right: 30px; z-index: 1000; background: var(--glass); border: 1px solid var(--card-border); border-radius: 50px; height: 50px; display: flex; align-items: center; padding: 0 25px; gap: 12px; cursor: pointer; transition: var(--transition); backdrop-filter: blur(var(--blur)); box-shadow: var(--shadow); color: var(--text-color); }
-        .footer { text-align: center; margin-top: 80px; padding: 40px; border-top: 1px solid var(--card-border); }
-        .rainbow-text { background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #0000ff, #ff0000); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: rainbow-anim 4s linear infinite; font-weight: 800; }
-        @keyframes rainbow-anim { to { background-position: 200% center; } }
+        .button-group { display: grid; grid-template-columns: 1fr; gap: 10px; }
+
+        .download-btn {
+            padding: 14px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.35s;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--primary), #7b5eff, var(--primary));
+            background-size: 200% 200%;
+            animation: buttonGradient 5s ease infinite;
+            color: white;
+            box-shadow: 0 8px 25px rgba(88, 101, 242, 0.45);
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes buttonGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .download-btn:hover {
+            transform: translateY(-4px) scale(1.04);
+            box-shadow: 0 15px 40px rgba(88, 101, 242, 0.7);
+            animation: none;
+        }
+
+        .download-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -100%;
+            width: 50%;
+            height: 200%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.35), transparent);
+            transition: left 0.7s;
+        }
+
+        .download-btn:hover::after { left: 100%; }
+
+        .theme-toggle {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            z-index: 1000;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+            border-radius: 50px;
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+
+        .theme-toggle:hover { transform: scale(1.08); }
+
+        [data-theme="light"] .theme-toggle {
+            background: rgba(0,0,0,0.05);
+            border-color: rgba(0,0,0,0.12);
+        }
+
+        .footer {
+            text-align: center;
+            margin: 40px 0 20px;
+            padding: 40px;
+            opacity: 0.7;
+        }
+
+        /* === Discord Support Section === */
+        .support-section {
+            text-align: center;
+            margin: 60px auto 100px;
+            padding: 40px 20px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+            box-shadow: var(--shadow);
+            max-width: 700px;
+            transition: all 0.3s;
+        }
+
+        .support-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.25), 0 0 30px rgba(88,101,242,0.3);
+        }
+
+        .support-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .support-desc {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .join-discord-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 32px;
+            background: var(--discord);
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.35s;
+            box-shadow: 0 8px 25px rgba(88,101,242,0.4);
+        }
+
+        .join-discord-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(88,101,242,0.6);
+            background: #4752c4;
+        }
+
+        .join-discord-btn i {
+            font-size: 1.4rem;
+        }
     </style>
 </head>
-<body>
+<body data-theme="dark">
 
     <div id="toast-container"></div>
-    <div class="theme-toggle" onclick="toggleTheme()"><i class="fas fa-sun" id="theme-icon"></i><span>GIAO DIỆN</span></div>
-    <div class="background-decor"><div class="gradient-sphere sphere-one"></div><div class="gradient-sphere sphere-two"></div></div>
+
+    <div class="theme-toggle" onclick="toggleTheme()">
+        <i class="fas fa-moon" id="theme-icon"></i>
+        <span>Chế độ</span>
+    </div>
+
+    <div class="background-decor">
+        <div class="gradient-sphere sphere-one"></div>
+        <div class="gradient-sphere sphere-two"></div>
+    </div>
     <canvas id="galaxy"></canvas>
 
     <header class="header">
@@ -95,16 +460,72 @@
     </header>
 
     <div class="container">
-        <div class="section-header"><i class="fab fa-android"></i><h2>Android Executors</h2></div>
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" class="search-input" placeholder="Tìm executor (ví dụ: arceus, delta, ronix...)">
+        </div>
+
+        <div class="section-header">
+            <h2><i class="fab fa-android" style="margin-right:12px;"></i> Android Executors</h2>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="last-update" id="android-update">Đang tải...</div>
+                <button class="refresh-btn" onclick="loadLinks()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </div>
         <div class="grid" id="android-grid"></div>
 
-        <div class="section-header"><i class="fas fa-desktop"></i><h2>PC Executors</h2></div>
+        <div class="section-header">
+            <h2><i class="fas fa-desktop" style="margin-right:12px;"></i> PC Executors</h2>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="last-update" id="pc-update">Đang tải...</div>
+                <button class="refresh-btn" onclick="loadLinks()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </div>
         <div class="grid" id="pc-grid"></div>
 
-        <footer class="footer"><div class="footer-content">Designed by <span class="rainbow-text">Nullix ( BNMhuy )</span></div></footer>
+        <!-- Server Support Discord -->
+        <div class="support-section">
+            <div class="support-title">Cần hỗ trợ hoặc báo lỗi?</div>
+            <div class="support-desc">
+                Tham gia server Discord chính thức của NULLIX HUB để được hỗ trợ nhanh chóng, cập nhật thông tin mới nhất và trao đổi với cộng đồng!
+            </div>
+            <a href="https://discord.gg/59XF8hMW5R" target="_blank" class="join-discord-btn">
+                <i class="fab fa-discord"></i>
+                Tham gia Discord ngay
+            </a>
+        </div>
+
+        <footer class="footer">
+            Designed by <span style="color:var(--accent); font-weight:700;">Nullix (BNMhuy)</span>
+        </footer>
     </div>
 
     <script>
+        // Theme toggle & lưu localStorage
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme') || 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', next);
+            
+            const icon = document.getElementById('theme-icon');
+            icon.className = next === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+
+            localStorage.setItem('theme', next);
+        }
+
+        // Load theme đã lưu
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.body.setAttribute('data-theme', savedTheme);
+            document.getElementById('theme-icon').className = 
+                savedTheme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        // Dữ liệu executor
         const androidExecutors = [
             { id: 'arceus', name: 'Arceus X NEO', ver: '2.703', icon: 'https://sf-static.upanhlaylink.com/img/image_2025091341b69c6afa4e02709bf1ba299bdbafbd.jpg', types: ['qt', 'vng'] },
             { id: 'codex', name: 'Codex', ver: '2.703', icon: 'https://codex.lol/static/icons/icon.svg', types: ['qt', 'vng'] },
@@ -121,29 +542,46 @@
             { id: 'bunni', name: 'Bunni Xeno', icon: 'https://sf-static.upanhlaylink.com/img/image_20251107ec93fb41bcff1cb31ece2f29c4c3d623.jpg' },
             { id: 'ronix_pc', name: 'Ronix PC', icon: 'https://wearedevs.net/images/ronix/ronix-animated.gif' },
             { id: 'drakflux', name: 'DrakFlux PC', icon: 'https://cdn-icons-png.flaticon.com/512/4241/4241630.png' },
-            { id: 'onyx', name: 'Onyx PC', icon: 'https://cdn-icons-png.flaticon.com/512/11546/11546303.png' }, // Thêm Onyx ở đây
+            { id: 'onyx', name: 'Onyx PC', icon: 'https://cdn-icons-png.flaticon.com/512/11546/11546303.png' },
             { id: 'tng_pc', name: 'TNG PC', icon: 'https://cdn-icons-png.flaticon.com/512/2620/2620701.png' },
             { id: 'velocity_pc', name: 'Velocity PC', icon: 'https://files.catbox.moe/tj6brv.png' }
         ];
 
+        const newExecutors = ['fluxusz', 'cryptic', 'velocity_pc', 'bunni'];
+
         function renderExecutors(list, containerId, isPc = false) {
             const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
             list.forEach(ex => {
+                const isNew = newExecutors.includes(ex.id) || 
+                             (ex.types && ex.types.some(t => newExecutors.includes(`${ex.id}_${t}`)));
+
                 let statusHtml = isPc 
                     ? `<div id="status-${ex.id}" class="mini-status status-offline">PC: Checking...</div>`
-                    : ex.types.map(t => `<div id="status-${ex.id}-${t}" class="mini-status status-offline">${t === 'qt' ? 'Global' : 'VNG'}: Checking...</div>`).join('');
-                
+                    : ex.types.map(t => `<div id="status-${ex.id}-${t}" class="mini-status status-offline">${t.toUpperCase()}: Checking...</div>`).join('');
+
                 let btnHtml = isPc
-                    ? `<div class="button-group btn-full"><a href="#" class="download-btn" id="btn-${ex.id}"><i class="fas fa-desktop"></i> Download</a></div>`
-                    : `<div class="button-group ${ex.types.length === 1 ? 'btn-full' : ''}">` + 
-                      ex.types.map(t => `<a href="#" class="download-btn ${t === 'vng' ? 'btn-vng' : ''}" id="btn-${ex.id}-${t}"><i class="fas fa-download"></i> ${t.toUpperCase()}</a>`).join('') + 
+                    ? `<div class="button-group btn-full">
+                         <a href="#" class="download-btn" id="btn-${ex.id}"><i class="fas fa-desktop"></i> Download</a>
+                       </div>`
+                    : `<div class="button-group ${ex.types.length === 1 ? 'btn-full' : ''}">` +
+                      ex.types.map(t => `
+                        <a href="#" class="download-btn ${t === 'vng' ? 'btn-vng' : ''}" id="btn-${ex.id}-${t}">
+                          <i class="fas fa-download"></i> ${t.toUpperCase()}
+                        </a>
+                      `).join('') +
                       `</div>`;
 
                 container.innerHTML += `
-                    <div class="card">
+                    <div class="card" data-name="${ex.name.toLowerCase()}" style="position: relative;">
+                        ${isNew ? '<div class="badge-new">NEW</div>' : ''}
                         <div class="card-top">
                             <div class="card-icon"><img src="${ex.icon}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3039/3039403.png'"></div>
-                            <div><div class="card-title">${ex.name}</div>${ex.ver ? `<p style="color: var(--text-secondary); font-size: 0.75rem;">Version: ${ex.ver}</p>` : ''}</div>
+                            <div>
+                                <div class="card-title">${ex.name}</div>
+                                ${ex.ver ? `<p style="color:var(--text-secondary); font-size:0.8rem;">Version: ${ex.ver}</p>` : ''}
+                            </div>
                         </div>
                         <div class="status-group">${statusHtml}</div>
                         ${btnHtml}
@@ -151,68 +589,116 @@
             });
         }
 
-        renderExecutors(androidExecutors, 'android-grid');
-        renderExecutors(pcExecutors, 'pc-grid', true);
-
-        function showToast(message) {
+        function showToast(message, type = "success") {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerText = message;
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="${type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'}"></i>
+                ${message}
+            `;
             container.appendChild(toast);
-            setTimeout(() => { 
-                toast.style.opacity = '0'; 
-                toast.style.transition = '0.5s'; 
-                setTimeout(() => { toast.remove(); }, 500); 
-            }, 3000);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                setTimeout(() => toast.remove(), 500);
+            }, 3200);
+        }
+
+        function filterExecutors() {
+            const input = document.getElementById('searchInput').value.toLowerCase().trim();
+            document.querySelectorAll('.card').forEach(card => {
+                const name = card.getAttribute('data-name') || '';
+                card.style.display = name.includes(input) ? '' : 'none';
+            });
         }
 
         async function loadLinks() {
+            const now = new Date();
+
             try {
-                const response = await fetch('https://raw.githubusercontent.com/HypatiaDz/111/main/links.json?t=' + Date.now());
+                const response = await fetch('https://raw.githubusercontent.com/HypatiaDz/111/main/links.json?t=' + now.getTime());
                 const data = await response.json();
+
                 const update = (id, link, prefix) => {
                     const btn = document.getElementById(`btn-${id}`);
                     const st = document.getElementById(`status-${id}`);
                     if (!btn || !st) return;
+
                     if (link && link.startsWith('http')) {
-                        btn.href = link; 
+                        btn.href = link;
                         btn.target = "_blank";
-                        btn.onclick = () => showToast(`Đang mở link tải...`);
-                        st.className = "mini-status status-online"; 
+                        btn.onclick = () => showToast(`Đang mở link tải ${prefix}...`, "success");
+                        st.className = "mini-status status-online";
                         st.innerText = `${prefix}: Online`;
                     } else {
-                        btn.href = "javascript:void(0)"; 
-                        btn.onclick = () => showToast(`Bản này đang bảo trì!`);
-                        st.className = "mini-status status-offline"; 
+                        btn.href = "javascript:void(0)";
+                        btn.onclick = () => showToast(`Phiên bản này đang bảo trì hoặc chưa có link`, "error");
+                        st.className = "mini-status status-offline";
                         st.innerText = `${prefix}: Bảo trì`;
                     }
                 };
-                androidExecutors.forEach(ex => ex.types.forEach(t => update(`${ex.id}-${t}`, data[`${ex.id}_${t}`], t.toUpperCase())));
-                pcExecutors.forEach(ex => update(ex.id, data[ex.id], 'PC'));
-            } catch (e) { console.log("Lỗi đồng bộ dữ liệu: ", e); }
+
+                androidExecutors.forEach(ex => {
+                    ex.types.forEach(t => update(`${ex.id}-${t}`, data[`${ex.id}_${t}`], t.toUpperCase()));
+                });
+
+                pcExecutors.forEach(ex => {
+                    update(ex.id, data[ex.id], 'PC');
+                });
+
+                const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                document.getElementById('android-update').textContent = `Cập nhật gần nhất: ${timeStr}`;
+                document.getElementById('pc-update').textContent = `Cập nhật gần nhất: ${timeStr}`;
+
+            } catch (e) {
+                console.error("Lỗi tải links:", e);
+                document.getElementById('android-update').textContent = "Lỗi khi tải dữ liệu";
+                document.getElementById('pc-update').textContent = "Lỗi khi tải dữ liệu";
+            }
         }
 
-        function toggleTheme() {
-            const body = document.body; const icon = document.getElementById('theme-icon');
-            if (body.getAttribute('data-theme') === 'light') { body.removeAttribute('data-theme'); icon.className = 'fas fa-sun'; }
-            else { body.setAttribute('data-theme', 'light'); icon.className = 'fas fa-moon'; }
-        }
-        const canvas = document.getElementById('galaxy'); const ctx = canvas.getContext('2d');
+        // Khởi tạo
+        renderExecutors(androidExecutors, 'android-grid');
+        renderExecutors(pcExecutors, 'pc-grid', true);
+        loadLinks();
+        setInterval(loadLinks, 30000);
+
+        document.getElementById('searchInput').addEventListener('input', filterExecutors);
+
+        // Galaxy background
+        const canvas = document.getElementById('galaxy');
+        const ctx = canvas.getContext('2d');
         let stars = [];
         function initStars() {
-            canvas.width = window.innerWidth; canvas.height = window.innerHeight; stars = [];
-            for(let i=0; i<100; i++) { stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 2, speed: Math.random() * 0.5 }); }
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            stars = [];
+            for (let i = 0; i < 100; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2 + 0.5,
+                    speed: Math.random() * 0.4 + 0.1
+                });
+            }
         }
-        function animate() {
+        function animateStars() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = document.body.hasAttribute('data-theme') ? "#333" : "#fff";
-            stars.forEach(star => { ctx.beginPath(); ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2); ctx.fill(); star.y += star.speed; if(star.y > canvas.height) star.y = 0; });
-            requestAnimationFrame(animate);
+            ctx.fillStyle = document.body.getAttribute('data-theme') === 'light' ? "#666" : "#e0e0ff";
+            stars.forEach(s => {
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                ctx.fill();
+                s.y += s.speed;
+                if (s.y > canvas.height) s.y = 0;
+            });
+            requestAnimationFrame(animateStars);
         }
-        window.addEventListener('resize', initStars); initStars(); animate();
-        loadLinks(); 
-        setInterval(loadLinks, 15000);
+        window.addEventListener('resize', initStars);
+        initStars();
+        animateStars();
     </script>
 </body>
 </html>

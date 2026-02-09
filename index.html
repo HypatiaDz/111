@@ -84,34 +84,6 @@
             to   { transform: translateX(0); opacity: 1; }
         }
 
-        .banner {
-            background: linear-gradient(135deg, #ff6b6b, #ff3366);
-            color: white;
-            padding: 16px 24px;
-            margin: 20px auto;
-            max-width: 900px;
-            border-radius: 14px;
-            text-align: center;
-            box-shadow: 0 6px 20px rgba(255,51,102,0.4);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-weight: 600;
-            font-size: 1.05rem;
-        }
-
-        .banner.success { background: linear-gradient(135deg, #00c896, #00ff9d); }
-        .banner.hidden { display: none; }
-
-        .banner-close {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0 8px;
-        }
-
         .container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
 
         .header { text-align: center; padding: 100px 20px 50px; }
@@ -231,10 +203,6 @@
             box-shadow: 0 3px 10px rgba(0,0,0,0.5);
         }
 
-        .badge-hot        { background: linear-gradient(135deg, #ff6b6b, #ff8e53); }
-        .badge-recommended { background: linear-gradient(135deg, #00c896, #00ff9d); }
-        .badge-risk       { background: linear-gradient(135deg, #ff3366, #ff6b6b); }
-
         .fix-card {
             border-color: var(--fix-color);
             background: rgba(255,149,0,0.08);
@@ -335,38 +303,6 @@
             background: rgba(255,85,85,0.3);
         }
 
-        .faq-section {
-            margin: 80px auto 120px;
-            max-width: 900px;
-        }
-
-        .faq-item {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-            margin-bottom: 12px;
-            overflow: hidden;
-        }
-
-        .faq-question {
-            padding: 18px 24px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.3s;
-        }
-
-        .faq-question:hover { background: rgba(88,101,242,0.08); }
-
-        .faq-answer {
-            padding: 0 24px 24px;
-            display: none;
-            color: var(--text-secondary);
-            line-height: 1.7;
-        }
-
         .support-section {
             margin: 70px auto 100px;
             padding: 40px 30px;
@@ -418,15 +354,18 @@
         @media (max-width: 768px) {
             .theme-toggle { top: 16px; right: 16px; padding: 10px 16px; }
         }
+
+        #galaxy {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
     </style>
 </head>
 <body data-theme="dark">
-
-    <!-- Banner thông báo -->
-    <div id="global-banner" class="banner">
-        <span id="banner-text">Arceus X NEO vừa update v2.704 – Link mới đã có! 🔥</span>
-        <button class="banner-close" onclick="document.getElementById('global-banner').classList.add('hidden')">×</button>
-    </div>
 
     <div id="toast-container"></div>
 
@@ -435,10 +374,6 @@
         <span>Chế độ</span>
     </div>
 
-    <div class="background-decor">
-        <div class="gradient-sphere sphere-one"></div>
-        <div class="gradient-sphere sphere-two"></div>
-    </div>
     <canvas id="galaxy"></canvas>
 
     <header class="header">
@@ -463,82 +398,6 @@
             <div class="last-update" id="pc-update">Đang tải...</div>
         </div>
         <div class="grid" id="pc-grid"></div>
-
-        <!-- FAQ mới -->
-        <div class="faq-section">
-            <h2 style="text-align:center; margin-bottom:30px; font-size:1.8rem;">❓ Câu hỏi thường gặp</h2>
-
-            <div class="faq-item">
-                <div class="faq-question" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">
-                    Executor VNG có cần key không? <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    Từ giữa 2025 trở đi, hầu hết các executor VNG (Arceus VNG, Delta VNG, Ronix VNG, Codex VNG...) đã được bypass key hoàn toàn. Bạn chỉ cần tải bản VNG và chạy trực tiếp, không cần nhập key nữa.
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">
-                    Tại sao Velocity hoặc Xeno bị crash / không inject được trên Windows 11? <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    Nguyên nhân phổ biến: thiếu driver, Windows Defender chặn, hoặc xung đột phần mềm. <br>
-                    <strong>Cách khắc phục nhanh:</strong><br>
-                    1. Tải và chạy file <strong>Fix tương ứng</strong> (Velocity PC Fix, Xeno PC Fix) trước khi mở executor.<br>
-                    2. Tắt tạm Windows Defender hoặc thêm ngoại lệ cho thư mục executor.<br>
-                    3. Chạy executor với quyền Administrator.
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">
-                    Antivirus báo virus / xóa file executor, phải làm sao? <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    Đây là <strong>false positive</strong> (cảnh báo dương tính giả) rất phổ biến với các công cụ executor. <br>
-                    <strong>Giải pháp:</strong><br>
-                    • Tắt tạm thời Windows Defender / Antivirus khi tải và giải nén.<br>
-                    • Thêm thư mục chứa executor vào danh sách ngoại lệ (exclusion).<br>
-                    • Nếu vẫn lo lắng, quét file bằng VirusTotal trước khi dùng.
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">
-                    Link tải hiện "Bảo trì" hoặc không tải được, làm thế nào? <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    Hệ thống tự động kiểm tra và cập nhật link mỗi 45 giây. <br>
-                    <strong>Cách xử lý:</strong><br>
-                    • Nhấn nút Refresh (hoặc chờ 1–2 phút).<br>
-                    • Nếu vẫn không được → vào Discord báo ngay để admin cập nhật link mới nhanh nhất.
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">
-                    Executor nào đang ổn định nhất hiện tại (2026)? <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    Theo phản hồi cộng đồng và tình trạng link hiện tại:<br>
-                    • <strong>Arceus X NEO</strong> (cả QT & VNG): ổn định cao, ít lỗi.<br>
-                    • <strong>Delta VNG</strong>: tốt cho game VNG, bypass key ổn.<br>
-                    • <strong>Velocity PC</strong> + Fix: vẫn là lựa chọn hàng đầu cho PC.<br>
-                    Các executor khác có thể thay đổi tùy thời điểm, nên kiểm tra badge và status thường xuyên.
-                </div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-question" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">
-                    Làm sao để biết executor có bị phát hiện (detect) hay không? <i class="fas fa-chevron-down"></i>
-                </div>
-                <div class="faq-answer">
-                    • Xem badge <strong>Risk</strong> trên card.<br>
-                    • Theo dõi thông báo trong Discord (kênh #update hoặc #announcement).<br>
-                    • Nếu dùng lâu dài, ưu tiên executor có badge <strong>Recommended</strong> hoặc <strong>Hot</strong> và link vừa được update gần đây.
-                </div>
-            </div>
-        </div>
 
         <!-- Phần hỗ trợ Discord -->
         <div class="support-section">
@@ -590,13 +449,7 @@
         }
 
         // ==================== BADGES ====================
-        const badges = {
-            'arceus':       ['recommended', 'hot'],
-            'delta':        ['hot'],
-            'velocity_pc':  ['recommended'],
-            'fix_velocity': ['recommended'],
-            'cryptic':      ['risk']
-        };
+        const badges = {};
 
         // ==================== DATA ====================
         const androidExecutors = [
@@ -744,16 +597,26 @@
             }
         });
 
+        // ==================== MAINTENANCE CLICK HANDLER ====================
+        document.addEventListener('click', e => {
+            const btn = e.target.closest('.download-btn');
+            if (btn && btn.href === '#') {
+                e.preventDefault();
+                showToast("Executor này đang bảo trì, vui lòng thử lại sau!", "error");
+            }
+        });
+
         // ==================== INIT ====================
         renderExecutors(androidExecutors, 'android-grid');
         renderExecutors(pcExecutors, 'pc-grid', true);
         loadLinks(true);
         setInterval(() => loadLinks(true), 45000);
 
-        // Galaxy background
+        // Galaxy background with parallax
         const canvas = document.getElementById('galaxy');
         const ctx = canvas.getContext('2d');
         let stars = [];
+        let scrollOffset = 0;
 
         function initStars() {
             canvas.width = window.innerWidth;
@@ -774,13 +637,17 @@
             ctx.fillStyle = document.body.getAttribute('data-theme') === 'light' ? "#777" : "#d0d0ff";
             stars.forEach(s => {
                 ctx.beginPath();
-                ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                ctx.arc(s.x, s.y + scrollOffset * s.speed * 0.5, s.size, 0, Math.PI * 2); // Parallax by multiplying scrollOffset
                 ctx.fill();
                 s.y += s.speed;
                 if (s.y > canvas.height) s.y = -s.size;
             });
             requestAnimationFrame(animateStars);
         }
+
+        window.addEventListener('scroll', () => {
+            scrollOffset = window.scrollY;
+        });
 
         window.addEventListener('resize', initStars);
         initStars();

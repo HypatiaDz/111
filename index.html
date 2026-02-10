@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="NULLIX HUB - Quản lý Executor Roblox Android & PC chuyên nghiệp, link luôn cập nhật mới nhất."/>
+    <meta name="theme-color" content="#050505"/>
     <title>NULLIX HUB - Quản lý Executor Chuyên Nghiệp</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -54,35 +56,20 @@
         }
 
         #toast-container {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 10001;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            position: fixed; bottom: 24px; right: 24px; z-index: 10001;
+            display: flex; flex-direction: column; gap: 12px;
         }
 
         .toast {
-            min-width: 300px;
-            padding: 16px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            color: white;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-            display: flex;
-            align-items: center;
-            gap: 14px;
+            min-width: 300px; padding: 16px 24px; border-radius: 12px;
+            font-weight: 600; color: white; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            display: flex; align-items: center; gap: 14px;
             animation: slideIn 0.4s ease-out forwards;
         }
-
         .toast.success { background: var(--toast-bg-success); }
         .toast.error   { background: var(--toast-bg-error); }
 
-        @keyframes slideIn {
-            from { transform: translateX(120%); opacity: 0; }
-            to   { transform: translateX(0); opacity: 1; }
-        }
+        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
         .container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
 
@@ -91,285 +78,108 @@
             font-family: 'Orbitron', sans-serif;
             font-size: clamp(3rem, 12vw, 5.5rem);
             background: linear-gradient(90deg, #00ff9d, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            background-clip: text;
+            -webkit-background-clip: text; background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: gradientFlow 10s infinite;
-            letter-spacing: 6px;
+            animation: gradientFlow 10s infinite; letter-spacing: 6px;
         }
+        @keyframes gradientFlow { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 
-        @keyframes gradientFlow {
-            0%,100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        .search-container {
-            max-width: 560px;
-            margin: 0 auto 48px;
-            position: relative;
-        }
-
+        .search-container { max-width: 560px; margin: 0 auto 20px; position: relative; }
         .search-input {
-            width: 100%;
-            padding: 16px 20px 16px 56px;
-            border-radius: 999px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid var(--card-border);
-            color: var(--text);
-            font-size: 1.05rem;
-            outline: none;
+            width: 100%; padding: 16px 20px 16px 56px; border-radius: 999px;
+            background: rgba(255,255,255,0.06); border: 1px solid var(--card-border);
+            color: var(--text); font-size: 1.05rem; outline: none; transition: all 0.3s;
+        }
+        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 20px rgba(88,101,242,0.35); }
+        .search-icon { position: absolute; left: 22px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 1.3rem; }
+
+        .refresh-btn {
+            display: block; margin: 0 auto 48px; padding: 14px 32px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white; border: none; border-radius: 999px; font-weight: 700;
+            font-size: 1.05rem; cursor: pointer; box-shadow: 0 8px 25px rgba(88,101,242,0.4);
             transition: all 0.3s;
         }
+        .refresh-btn:hover { transform: translateY(-4px); box-shadow: 0 15px 40px rgba(88,101,242,0.6); }
 
-        .search-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 20px rgba(88,101,242,0.35);
-        }
+        .section-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin: 60px 0 28px; padding-bottom: 16px; border-bottom: 2px solid var(--card-border); }
+        .section-header h2 { font-size: 2rem; font-weight: 700; display: flex; align-items: center; gap: 12px; }
 
-        .search-icon {
-            position: absolute;
-            left: 22px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-            font-size: 1.3rem;
-        }
-
-        .section-header {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            margin: 60px 0 28px;
-            padding-bottom: 16px;
-            border-bottom: 2px solid var(--card-border);
-        }
-
-        .section-header h2 {
-            font-size: 2rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-            gap: 28px;
-        }
-
-        @media (max-width: 768px) {
-            .grid { grid-template-columns: 1fr; gap: 20px; }
-            .download-btn, .report-btn { padding: 18px; font-size: 1.1rem; }
-            .card { padding: 24px 18px; }
-            .theme-toggle { top: 16px; right: 16px; padding: 10px 16px; font-size: 0.9rem; }
-            .header { padding: 80px 16px 40px; }
-        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 28px; }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; gap: 20px; } }
 
         .card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 20px;
-            padding: 28px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px;
+            padding: 28px; position: relative; overflow: hidden; transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
             box-shadow: var(--shadow);
         }
+        .card:hover { transform: translateY(-14px) scale(1.02); border-color: var(--accent); box-shadow: 0 24px 60px rgba(0,0,0,0.45), var(--glow); }
 
-        .card:hover {
-            transform: translateY(-14px) scale(1.02);
-            border-color: var(--accent);
-            box-shadow: 0 24px 60px rgba(0,0,0,0.45), var(--glow);
-        }
+        .badge-container { position: absolute; top: 14px; left: 14px; display: flex; flex-wrap: wrap; gap: 8px; z-index: 6; }
+        .badge { padding: 5px 12px; border-radius: 50px; font-size: 0.74rem; font-weight: 700; color: white; box-shadow: 0 3px 10px rgba(0,0,0,0.5); }
 
-        .badge-container {
-            position: absolute;
-            top: 14px;
-            left: 14px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            z-index: 6;
-        }
+        .fix-card { border-color: var(--fix-color); background: rgba(255,149,0,0.08); }
+        .fix-card:hover { box-shadow: 0 0 30px rgba(255,149,0,0.45); }
 
-        .badge {
-            padding: 5px 12px;
-            border-radius: 50px;
-            font-size: 0.74rem;
-            font-weight: 700;
-            color: white;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.5);
-        }
-
-        .fix-card {
-            border-color: var(--fix-color);
-            background: rgba(255,149,0,0.08);
-        }
-
-        .fix-card:hover {
-            box-shadow: 0 0 30px rgba(255,149,0,0.45);
-        }
-
-        .card-top {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-
-        .card-icon {
-            width: 68px;
-            height: 68px;
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid var(--card-border);
-        }
-
-        .card-icon img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
+        .card-top { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+        .card-icon { width: 68px; height: 68px; border-radius: 16px; overflow: hidden; border: 1px solid var(--card-border); }
+        .card-icon img { width: 100%; height: 100%; object-fit: cover; }
         .card-title { font-size: 1.45rem; font-weight: 700; }
 
-        .status-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 24px;
-            min-height: 32px;
-        }
-
+        .status-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; min-height: 32px; }
         .mini-status {
-            padding: 6px 16px;
-            border-radius: 50px;
-            font-size: 0.82rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            background: rgba(255,255,255,0.06);
+            padding: 6px 16px; border-radius: 50px; font-size: 0.82rem; font-weight: 700;
+            text-transform: uppercase; background: rgba(255,255,255,0.06);
         }
-
         .status-online  { background: rgba(0,255,157,0.18); color: var(--status-online); }
         .status-offline { background: rgba(255,85,85,0.18); color: var(--status-offline); }
 
-        .button-group {
-            display: grid;
-            gap: 12px;
-            grid-template-columns: 1fr 1fr;
-        }
-
-        @media (max-width: 500px) {
-            .button-group { grid-template-columns: 1fr; }
-        }
-
+        .button-group { display: flex; flex-wrap: wrap; gap: 12px; }
         .download-btn, .report-btn {
-            padding: 16px;
-            border-radius: 14px;
-            text-decoration: none;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.35s;
-            cursor: pointer;
+            flex: 1; min-width: 140px; padding: 16px; border-radius: 14px;
+            text-decoration: none; font-weight: 700; display: flex; align-items: center;
+            justify-content: center; gap: 10px; transition: all 0.35s; cursor: pointer;
         }
-
         .download-btn {
             background: linear-gradient(135deg, var(--primary), #7b5eff);
-            color: white;
-            box-shadow: 0 10px 30px rgba(88,101,242,0.5);
+            color: white; box-shadow: 0 10px 30px rgba(88,101,242,0.5);
         }
-
-        .download-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 18px 50px rgba(88,101,242,0.7);
-        }
-
-        .fix-btn {
-            background: linear-gradient(135deg, var(--fix-color), #ffaa33) !important;
-        }
-
+        .download-btn:hover { transform: translateY(-5px); box-shadow: 0 18px 50px rgba(88,101,242,0.7); }
+        .fix-btn { background: linear-gradient(135deg, var(--fix-color), #ffaa33) !important; }
         .report-btn {
-            background: rgba(255,85,85,0.15);
-            color: #ff5555;
-            font-size: 0.98rem;
+            background: rgba(255,85,85,0.15); color: #ff5555; font-size: 0.98rem; flex: 0 0 auto;
         }
-
-        .report-btn:hover {
-            background: rgba(255,85,85,0.3);
-        }
+        .report-btn:hover { background: rgba(255,85,85,0.3); }
 
         .support-section {
-            margin: 70px auto 100px;
-            padding: 40px 30px;
-            background: var(--card-bg);
-            border-radius: 20px;
-            border: 1px solid var(--card-border);
-            text-align: center;
-            max-width: 700px;
+            margin: 70px auto 100px; padding: 40px 30px; background: var(--card-bg);
+            border-radius: 20px; border: 1px solid var(--card-border); text-align: center; max-width: 700px;
         }
-
         .join-discord-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px 36px;
-            background: #5865f2;
-            color: white;
-            font-weight: 700;
-            font-size: 1.1rem;
-            border-radius: 50px;
-            text-decoration: none;
-            transition: all 0.3s;
+            display: inline-flex; align-items: center; gap: 12px; padding: 16px 36px;
+            background: #5865f2; color: white; font-weight: 700; font-size: 1.1rem;
+            border-radius: 50px; text-decoration: none; transition: all 0.3s;
             box-shadow: 0 8px 25px rgba(88,101,242,0.4);
         }
-
-        .join-discord-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(88,101,242,0.6);
-            background: #4752c4;
-        }
+        .join-discord-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(88,101,242,0.6); background: #4752c4; }
 
         .theme-toggle {
-            position: fixed;
-            top: 24px;
-            right: 24px;
-            z-index: 1000;
-            background: rgba(255,255,255,0.08);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--card-border);
-            border-radius: 999px;
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
+            position: fixed; top: 24px; right: 24px; z-index: 1000;
+            background: rgba(255,255,255,0.08); backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border); border-radius: 999px; padding: 12px 20px;
+            display: flex; align-items: center; gap: 10px; cursor: pointer;
             box-shadow: 0 6px 20px rgba(0,0,0,0.35);
         }
+        @media (max-width: 768px) { .theme-toggle { top: 16px; right: 16px; padding: 10px 16px; } }
 
-        @media (max-width: 768px) {
-            .theme-toggle { top: 16px; right: 16px; padding: 10px 16px; }
-        }
-
-        #galaxy {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
+        #galaxy { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
     </style>
 </head>
 <body data-theme="dark">
 
     <div id="toast-container"></div>
 
-    <div class="theme-toggle" onclick="toggleTheme()">
+    <div class="theme-toggle" onclick="toggleTheme()" aria-label="Chuyển chế độ sáng/tối">
         <i class="fas fa-moon" id="theme-icon"></i>
         <span>Chế độ</span>
     </div>
@@ -384,8 +194,12 @@
     <div class="container">
         <div class="search-container">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" id="searchInput" class="search-input" placeholder="Tìm executor (ví dụ: arceus, delta, fix velocity...)">
+            <input type="text" id="searchInput" class="search-input" placeholder="Tìm executor (ví dụ: arceus, delta, fix velocity...)" aria-label="Tìm kiếm executor">
         </div>
+
+        <button id="refresh-all" class="refresh-btn" onclick="loadLinks(false)">
+            <i class="fas fa-sync-alt"></i> Refresh All Links
+        </button>
 
         <div class="section-header">
             <h2><i class="fab fa-android"></i> Android Executors</h2>
@@ -399,13 +213,12 @@
         </div>
         <div class="grid" id="pc-grid"></div>
 
-        <!-- Phần hỗ trợ Discord -->
         <div class="support-section">
             <h2 style="margin-bottom: 20px; color: var(--primary);">Cần hỗ trợ hoặc báo lỗi?</h2>
             <p style="margin-bottom: 30px; color: var(--text-secondary);">
                 Tham gia server Discord chính thức để được hỗ trợ nhanh, cập nhật link mới nhất và trao đổi với cộng đồng!
             </p>
-            <a href="https://discord.gg/59XF8hMW5R" target="_blank" class="join-discord-btn">
+            <a href="https://discord.gg/59XF8hMW5R" target="_blank" class="join-discord-btn" aria-label="Tham gia Discord">
                 <i class="fab fa-discord" style="font-size:1.5rem;"></i>
                 Tham gia Discord ngay
             </a>
@@ -417,7 +230,6 @@
     </div>
 
     <script>
-        // ==================== UTILITIES ====================
         const $ = s => document.querySelector(s);
         const $$ = s => document.querySelectorAll(s);
 
@@ -425,21 +237,19 @@
             const container = $('#toast-container');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            toast.innerHTML = `
-                <i class="${type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'}"></i>
-                ${message}
-            `;
+            toast.innerHTML = `<i class="${type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'}"></i> ${message}`;
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 4200);
         }
 
-        // ==================== THEME ====================
+        // Theme
         function toggleTheme() {
             const current = document.body.getAttribute('data-theme') || 'dark';
             const next = current === 'dark' ? 'light' : 'dark';
             document.body.setAttribute('data-theme', next);
             localStorage.setItem('theme', next);
             $('#theme-icon').className = next === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+            updateStarColor();
         }
 
         const savedTheme = localStorage.getItem('theme');
@@ -448,10 +258,7 @@
             $('#theme-icon').className = savedTheme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
         }
 
-        // ==================== BADGES ====================
-        const badges = {};
-
-        // ==================== DATA ====================
+        // Data
         const androidExecutors = [
             { id: 'arceus', name: 'Arceus X NEO', ver: '2.703', icon: 'https://sf-static.upanhlaylink.com/img/image_2025091341b69c6afa4e02709bf1ba299bdbafbd.jpg', types: ['qt', 'vng'] },
             { id: 'codex',   name: 'Codex',       ver: '2.703', icon: 'https://codex.lol/static/icons/icon.svg', types: ['qt', 'vng'] },
@@ -475,20 +282,14 @@
             { id: 'fix_xeno',     name: 'Xeno PC Fix',     icon: 'https://cdn-icons-png.flaticon.com/512/1055/1055687.png', isFix: true },
         ];
 
-        // ==================== RENDER ====================
+        // Render
         function renderExecutors(list, containerId, isPc = false) {
             const container = $(`#${containerId}`);
             container.innerHTML = '';
 
             list.forEach(ex => {
                 const isFix = ex.isFix || false;
-                const badgeList = badges[ex.id] || [];
-                const badgeHTML = badgeList.length > 0 ? `
-                    <div class="badge-container">
-                        ${badgeList.map(b => `<div class="badge badge-${b}">${b.toUpperCase()}</div>`).join('')}
-                    </div>
-                ` : '';
-
+                const badgeHTML = '';
                 const statusHTML = isPc
                     ? `<div id="status-${ex.id}" class="mini-status status-offline">${isFix ? 'Fix Tool' : 'PC'}: Checking...</div>`
                     : ex.types.map(t => `<div id="status-${ex.id}-${t}" class="mini-status status-offline">${t.toUpperCase()}: Checking...</div>`).join('');
@@ -512,7 +313,7 @@
                         ${badgeHTML}
                         <div class="card-top">
                             <div class="card-icon">
-                                <img src="${ex.icon}" alt="${ex.name}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3039/3039403.png'">
+                                <img src="${ex.icon}" alt="${ex.name}" loading="lazy" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3039/3039403.png'">
                             </div>
                             <div>
                                 <div class="card-title">${ex.name}</div>
@@ -528,9 +329,8 @@
             });
         }
 
-        // ==================== LOAD LINKS ====================
+        // Load links
         let isRefreshing = false;
-
         async function loadLinks(silent = false) {
             if (isRefreshing) return;
             isRefreshing = true;
@@ -578,26 +378,27 @@
             }
         }
 
-        // ==================== SEARCH ====================
+        // Search với debounce
+        let searchTimeout;
         $('#searchInput').addEventListener('input', e => {
-            const q = e.target.value.toLowerCase().trim();
-            $$('.card').forEach(card => {
-                card.style.display = card.dataset.name.includes(q) ? '' : 'none';
-            });
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const q = e.target.value.toLowerCase().trim();
+                $$('.card').forEach(card => {
+                    card.style.display = card.dataset.name.includes(q) ? '' : 'none';
+                });
+            }, 300);
         });
 
-        // ==================== RIGHT CLICK COPY ====================
+        // Right click copy + maintenance click
         document.addEventListener('contextmenu', e => {
             const btn = e.target.closest('.download-btn');
             if (btn && btn.href && btn.href.startsWith('http')) {
                 e.preventDefault();
-                navigator.clipboard.writeText(btn.href)
-                    .then(() => showToast("Đã copy link tải xuống!", "success"))
-                    .catch(() => showToast("Không thể copy link", "error"));
+                navigator.clipboard.writeText(btn.href).then(() => showToast("Đã copy link tải xuống!", "success"));
             }
         });
 
-        // ==================== MAINTENANCE CLICK HANDLER ====================
         document.addEventListener('click', e => {
             const btn = e.target.closest('.download-btn');
             if (btn && btn.href === '#') {
@@ -606,23 +407,24 @@
             }
         });
 
-        // ==================== INIT ====================
-        renderExecutors(androidExecutors, 'android-grid');
-        renderExecutors(pcExecutors, 'pc-grid', true);
-        loadLinks(true);
-        setInterval(() => loadLinks(true), 45000);
-
-        // Galaxy background with parallax
+        // Canvas Galaxy tối ưu
         const canvas = document.getElementById('galaxy');
         const ctx = canvas.getContext('2d');
         let stars = [];
+        let starColor = '#d0d0ff';
         let scrollOffset = 0;
+        let resizeTimeout;
+
+        function updateStarColor() {
+            starColor = document.body.getAttribute('data-theme') === 'light' ? "#777" : "#d0d0ff";
+        }
 
         function initStars() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             stars = [];
-            for (let i = 0; i < 120; i++) {
+            const count = window.innerWidth < 768 ? 80 : 120;
+            for (let i = 0; i < count; i++) {
                 stars.push({
                     x: Math.random() * canvas.width,
                     y: Math.random() * canvas.height,
@@ -634,10 +436,10 @@
 
         function animateStars() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = document.body.getAttribute('data-theme') === 'light' ? "#777" : "#d0d0ff";
+            ctx.fillStyle = starColor;
             stars.forEach(s => {
                 ctx.beginPath();
-                ctx.arc(s.x, s.y + scrollOffset * s.speed * 0.5, s.size, 0, Math.PI * 2); // Parallax by multiplying scrollOffset
+                ctx.arc(s.x, s.y + scrollOffset * s.speed * 0.5, s.size, 0, Math.PI * 2);
                 ctx.fill();
                 s.y += s.speed;
                 if (s.y > canvas.height) s.y = -s.size;
@@ -645,13 +447,20 @@
             requestAnimationFrame(animateStars);
         }
 
-        window.addEventListener('scroll', () => {
-            scrollOffset = window.scrollY;
+        window.addEventListener('scroll', () => { scrollOffset = window.scrollY; });
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(initStars, 200);
         });
 
-        window.addEventListener('resize', initStars);
+        // Init
+        renderExecutors(androidExecutors, 'android-grid');
+        renderExecutors(pcExecutors, 'pc-grid', true);
+        updateStarColor();
         initStars();
         animateStars();
+        loadLinks(true);
+        setInterval(() => loadLinks(true), 45000);
     </script>
 </body>
 </html>

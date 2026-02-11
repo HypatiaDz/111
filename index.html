@@ -194,7 +194,7 @@
     <div class="container">
         <div class="search-container">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" id="searchInput" class="search-input" placeholder="Tìm executor (ví dụ: arceus, delta, fix velocity...)" aria-label="Tìm kiếm executor">
+            <input type="text" id="searchInput" class="search-input" placeholder="Tìm executor (ví dụ: arceus, delta, salo...)" aria-label="Tìm kiếm executor">
         </div>
 
         <button id="refresh-all" class="refresh-btn" onclick="loadLinks(false)">
@@ -208,7 +208,7 @@
         <div class="grid" id="android-grid"></div>
 
         <div class="section-header">
-            <h2><i class="fas fa-desktop"></i> PC Executors & Fixes</h2>
+            <h2><i class="fas fa-desktop"></i> PC Executors</h2>
             <div class="last-update" id="pc-update">Đang tải...</div>
         </div>
         <div class="grid" id="pc-grid"></div>
@@ -277,9 +277,7 @@
             { id: 'onyx',        name: 'Onyx PC',         icon: 'https://cdn-icons-png.flaticon.com/512/11546/11546303.png' },
             { id: 'tng_pc',      name: 'TNG PC',          icon: 'https://cdn-icons-png.flaticon.com/512/2620/2620701.png' },
             { id: 'velocity_pc', name: 'Velocity PC',     icon: 'https://files.catbox.moe/tj6brv.png' },
-            { id: 'fix_velocity', name: 'Velocity PC Fix', icon: 'https://cdn-icons-png.flaticon.com/512/1055/1055687.png', isFix: true },
-            { id: 'fix_tng',      name: 'TNG PC Fix',      icon: 'https://cdn-icons-png.flaticon.com/512/1055/1055687.png', isFix: true },
-            { id: 'fix_xeno',     name: 'Xeno PC Fix',     icon: 'https://cdn-icons-png.flaticon.com/512/1055/1055687.png', isFix: true },
+            { id: 'salo_pc',     name: 'Salo Client PC',  icon: 'https://cdn-icons-png.flaticon.com/512/5968/5968292.png' },
         ];
 
         // Render
@@ -290,19 +288,39 @@
             list.forEach(ex => {
                 const isFix = ex.isFix || false;
                 const badgeHTML = '';
-                const statusHTML = isPc
-                    ? `<div id="status-${ex.id}" class="mini-status status-offline">${isFix ? 'Fix Tool' : 'PC'}: Checking...</div>`
-                    : ex.types.map(t => `<div id="status-${ex.id}-${t}" class="mini-status status-offline">${t.toUpperCase()}: Checking...</div>`).join('');
+                
+                // Status Handling
+                let statusHTML = '';
+                if (isPc) {
+                    statusHTML += `<div id="status-${ex.id}" class="mini-status status-offline">PC: Checking...</div>`;
+                    // Thêm status cho TNG Roblox nếu là TNG PC
+                    if (ex.id === 'tng_pc') {
+                        statusHTML += `<div id="status-tng_roblox" class="mini-status status-offline">ROBLOX TNG: Checking...</div>`;
+                    }
+                } else {
+                    statusHTML = ex.types.map(t => `<div id="status-${ex.id}-${t}" class="mini-status status-offline">${t.toUpperCase()}: Checking...</div>`).join('');
+                }
 
-                const btnHTML = isPc
-                    ? `<a href="#" class="download-btn ${isFix ? 'fix-btn' : ''}" id="btn-${ex.id}">
+                // Button Handling
+                let btnHTML = '';
+                if (isPc) {
+                     btnHTML += `<a href="#" class="download-btn ${isFix ? 'fix-btn' : ''}" id="btn-${ex.id}">
                          <i class="${isFix ? 'fas fa-tools' : 'fas fa-desktop'}"></i> ${isFix ? 'Download Fix' : 'Download PC'}
-                       </a>`
-                    : ex.types.map(t => `
+                       </a>`;
+                     
+                     // Thêm nút Download Roblox cho TNG PC
+                     if (ex.id === 'tng_pc') {
+                         btnHTML += `<a href="#" class="download-btn" id="btn-tng_roblox" style="background: linear-gradient(135deg, #FF512F, #DD2476);">
+                             <i class="fas fa-gamepad"></i> Roblox TNG
+                         </a>`;
+                     }
+                } else {
+                    btnHTML = ex.types.map(t => `
                         <a href="#" class="download-btn" id="btn-${ex.id}-${t}">
                           <i class="fas fa-download"></i> ${t.toUpperCase()}
                         </a>
                     `).join('');
+                }
 
                 const reportHTML = `<a href="https://discord.gg/59XF8hMW5R" target="_blank" class="report-btn">
                     <i class="fas fa-bug"></i> Báo lỗi
@@ -364,6 +382,9 @@
                 pcExecutors.forEach(ex => {
                     update(ex.id, data[ex.id], ex.isFix ? 'Fix Tool' : 'PC');
                 });
+                
+                // Cập nhật riêng cho nút Roblox TNG
+                update('tng_roblox', data['tng_roblox'], 'ROBLOX TNG');
 
                 const time = new Date().toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
                 $('#android-update').textContent = `Cập nhật: ${time}`;

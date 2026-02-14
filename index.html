@@ -4,187 +4,148 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta name="description" content="NULLIX HUB - Quản lý Executor Roblox Android & PC chuyên nghiệp, link luôn cập nhật mới nhất."/>
-    <meta name="theme-color" content="#050505"/>
+    <meta name="theme-color" content="#030305"/>
     <title>NULLIX HUB - Quản lý Executor Chuyên Nghiệp</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@700;900&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --bg: #050505;
-            --card-bg: rgba(13, 13, 25, 0.94);
-            --card-border: rgba(88, 101, 242, 0.22);
+            --bg: #030305;
+            --card-bg: rgba(15, 15, 25, 0.65); /* Kính trong suốt */
+            --card-border: rgba(88, 101, 242, 0.3);
             --text: #f0f0ff;
-            --text-secondary: #aaa;
+            --text-secondary: #a0aec0;
             --primary: #5865f2;
             --accent: #00d4ff;
             --status-online: #00ff9d;
-            --status-offline: #ff5555;
-            --fix-color: #ff9500;
-            --glow: 0 0 35px rgba(88, 101, 242, 0.55);
-            --glow-accent: 0 0 35px rgba(0, 212, 255, 0.45);
-            --toast-bg-success: linear-gradient(135deg, #00c896, #00ff9d);
-            --toast-bg-error: linear-gradient(135deg, #ff5555, #ff3366);
-            --shadow: 0 10px 30px rgba(0,0,0,0.6);
+            --status-offline: #ff4757;
+            --fix-color: #ff9f43;
+            --glow: 0 0 30px rgba(0, 212, 255, 0.5);
+            --shadow: 0 15px 35px rgba(0,0,0,0.8);
         }
 
         [data-theme="light"] {
-            --bg: #f8f9ff;
-            --card-bg: #ffffff;
-            --card-border: rgba(88, 101, 242, 0.15);
-            --text: #1a1a3d;
-            --text-secondary: #5f5f7e;
-            --primary: #4c55d9;
-            --accent: #0099cc;
-            --status-online: #00b386;
-            --status-offline: #e63946;
-            --fix-color: #ffaa00;
-            --glow: 0 0 25px rgba(76, 85, 217, 0.35);
-            --glow-accent: 0 0 25px rgba(0, 153, 204, 0.35);
-            --shadow: 0 8px 25px rgba(0,0,0,0.1);
+            --bg: #f8f9fa; --card-bg: rgba(255, 255, 255, 0.8); --card-border: rgba(88, 101, 242, 0.2);
+            --text: #1e293b; --text-secondary: #64748b; --primary: #4f46e5; --accent: #0ea5e9;
+            --status-online: #10b981; --status-offline: #ef4444; --fix-color: #f59e0b;
         }
 
         * { margin:0; padding:0; box-sizing:border-box; }
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Inter', system-ui, sans-serif;
-            min-height: 100vh;
-            transition: background 0.5s ease, color 0.5s ease;
-            line-height: 1.6;
-        }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; overflow-x: hidden; transition: background 0.5s ease; }
 
-        #toast-container {
-            position: fixed; bottom: 24px; right: 24px; z-index: 10001;
-            display: flex; flex-direction: column; gap: 12px;
+        /* MỚI: Hiệu ứng Tinh vân đằng sau */
+        .nebula {
+            position: fixed; top: -20%; left: 50%; transform: translateX(-50%);
+            width: 70vw; height: 70vw; border-radius: 50%;
+            background: radial-gradient(circle, rgba(88,101,242,0.15) 0%, rgba(0,212,255,0.05) 40%, transparent 70%);
+            z-index: -1; filter: blur(60px); animation: pulseNebula 8s infinite alternate ease-in-out; pointer-events: none;
         }
+        @keyframes pulseNebula { 0% { opacity: 0.6; transform: translateX(-50%) scale(0.9); } 100% { opacity: 1; transform: translateX(-50%) scale(1.1); } }
 
-        .toast {
-            min-width: 300px; padding: 16px 24px; border-radius: 12px;
-            font-weight: 600; color: white; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-            display: flex; align-items: center; gap: 14px;
-            animation: slideIn 0.4s ease-out forwards;
-        }
-        .toast.success { background: var(--toast-bg-success); }
-        .toast.error   { background: var(--toast-bg-error); }
+        #galaxy { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; pointer-events: none; }
 
-        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 10001; display: flex; flex-direction: column; gap: 12px; }
+        .toast { min-width: 300px; padding: 16px 24px; border-radius: 12px; font-weight: 600; color: white; display: flex; align-items: center; gap: 14px; animation: slideIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
+        .toast.success { background: linear-gradient(135deg, #00b09b, #96c93d); box-shadow: 0 5px 20px rgba(0, 176, 155, 0.4); }
+        .toast.error   { background: linear-gradient(135deg, #ff416c, #ff4b2b); box-shadow: 0 5px 20px rgba(255, 65, 108, 0.4); }
+        @keyframes slideIn { from { transform: translateX(120%); } to { transform: translateX(0); } }
 
         .container { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
 
-        .header { text-align: center; padding: 100px 20px 50px; }
+        .header { text-align: center; padding: 100px 20px 50px; position: relative; }
         .header h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: clamp(3rem, 12vw, 5.5rem);
-            background: linear-gradient(90deg, #00ff9d, var(--primary), var(--accent));
-            -webkit-background-clip: text; background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradientFlow 10s infinite; letter-spacing: 6px;
+            font-family: 'Orbitron', sans-serif; font-size: clamp(3rem, 10vw, 5.5rem); font-weight: 900;
+            background: linear-gradient(90deg, #00f2fe, #4facfe, #00f2fe);
+            -webkit-background-clip: text; color: transparent; background-size: 200% auto;
+            animation: textShine 4s linear infinite; letter-spacing: 4px; filter: drop-shadow(0 0 15px rgba(0,212,255,0.3));
         }
-        @keyframes gradientFlow { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        @keyframes textShine { to { background-position: 200% center; } }
 
         .search-container { max-width: 560px; margin: 0 auto 20px; position: relative; }
         .search-input {
-            width: 100%; padding: 16px 20px 16px 56px; border-radius: 999px;
-            background: rgba(255,255,255,0.06); border: 1px solid var(--card-border);
-            color: var(--text); font-size: 1.05rem; outline: none; transition: all 0.3s;
+            width: 100%; padding: 16px 20px 16px 56px; border-radius: 50px;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); backdrop-filter: blur(10px);
+            color: var(--text); font-size: 1.05rem; outline: none; transition: 0.3s;
         }
-        .search-input:focus { border-color: var(--primary); box-shadow: 0 0 20px rgba(88,101,242,0.35); }
-        .search-icon { position: absolute; left: 22px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 1.3rem; }
+        .search-input:focus { border-color: var(--accent); box-shadow: 0 0 20px rgba(0,212,255,0.3); background: rgba(0,0,0,0.5); }
+        .search-icon { position: absolute; left: 22px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 1.2rem; }
 
         .refresh-btn {
             display: block; margin: 0 auto 48px; padding: 14px 32px;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: white; border: none; border-radius: 999px; font-weight: 700;
-            font-size: 1.05rem; cursor: pointer; box-shadow: 0 8px 25px rgba(88,101,242,0.4);
-            transition: all 0.3s;
+            background: rgba(88,101,242,0.1); border: 1px solid var(--primary);
+            color: var(--text); border-radius: 50px; font-weight: 700; font-family: 'Orbitron';
+            font-size: 1rem; cursor: pointer; transition: 0.3s; letter-spacing: 1px;
         }
-        .refresh-btn:hover { transform: translateY(-4px); box-shadow: 0 15px 40px rgba(88,101,242,0.6); }
+        .refresh-btn:hover { background: var(--primary); color: white; box-shadow: 0 0 25px rgba(88,101,242,0.5); transform: translateY(-3px); }
 
-        .section-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin: 60px 0 28px; padding-bottom: 16px; border-bottom: 2px solid var(--card-border); }
-        .section-header h2 { font-size: 2rem; font-weight: 700; display: flex; align-items: center; gap: 12px; }
+        .section-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin: 60px 0 28px; padding-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .section-header h2 { font-size: 1.8rem; font-family: 'Orbitron'; font-weight: 700; display: flex; align-items: center; gap: 12px; }
 
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 28px; }
-        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; gap: 20px; } }
 
+        /* MỚI: Card Kính & Hiệu ứng sáng 2 màu */
         .card {
             background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px;
-            padding: 28px; position: relative; overflow: hidden; transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            padding: 28px; position: relative; overflow: hidden; transition: all 0.4s ease;
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             box-shadow: var(--shadow);
         }
-        .card:hover { transform: translateY(-14px) scale(1.02); border-color: var(--accent); box-shadow: 0 24px 60px rgba(0,0,0,0.45), var(--glow); }
+        .card:hover { 
+            transform: translateY(-10px); 
+            border-color: rgba(0, 212, 255, 0.6); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 25px rgba(0, 212, 255, 0.2), inset 0 0 15px rgba(88, 101, 242, 0.1); 
+        }
 
         .badge-container { position: absolute; top: 14px; left: 14px; display: flex; flex-wrap: wrap; gap: 8px; z-index: 6; }
         .badge { padding: 5px 12px; border-radius: 50px; font-size: 0.74rem; font-weight: 700; color: white; box-shadow: 0 3px 10px rgba(0,0,0,0.5); }
 
-        .fix-card { border-color: var(--fix-color); background: rgba(255,149,0,0.08); }
-        .fix-card:hover { box-shadow: 0 0 30px rgba(255,149,0,0.45); }
+        .fix-card { border-color: var(--fix-color); background: rgba(255,159,67,0.05); }
+        .fix-card:hover { border-color: var(--fix-color); box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 25px rgba(255,159,67,0.2); }
 
         .card-top { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
-        .card-icon { width: 68px; height: 68px; border-radius: 16px; overflow: hidden; border: 1px solid var(--card-border); }
+        .card-icon { width: 68px; height: 68px; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
         .card-icon img { width: 100%; height: 100%; object-fit: cover; }
-        .card-title { font-size: 1.45rem; font-weight: 700; }
+        .card-title { font-size: 1.4rem; font-weight: 700; font-family: 'Orbitron'; }
 
         .status-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; min-height: 32px; }
-        .mini-status {
-            padding: 6px 16px; border-radius: 50px; font-size: 0.82rem; font-weight: 700;
-            text-transform: uppercase; background: rgba(255,255,255,0.06);
-        }
-        .status-online  { background: rgba(0,255,157,0.18); color: var(--status-online); }
-        .status-offline { background: rgba(255,85,85,0.18); color: var(--status-offline); }
+        .mini-status { padding: 6px 16px; border-radius: 50px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; background: rgba(0,0,0,0.4); border: 1px solid transparent; }
+        .status-online  { border-color: rgba(0,255,157,0.3); color: var(--status-online); }
+        .status-offline { border-color: rgba(255,71,87,0.3); color: var(--status-offline); }
 
         .button-group { display: flex; flex-wrap: wrap; gap: 12px; }
-        .download-btn, .report-btn {
-            flex: 1; min-width: 140px; padding: 16px; border-radius: 14px;
-            text-decoration: none; font-weight: 700; display: flex; align-items: center;
-            justify-content: center; gap: 10px; transition: all 0.35s; cursor: pointer;
-        }
-        .download-btn {
-            background: linear-gradient(135deg, var(--primary), #7b5eff);
-            color: white; box-shadow: 0 10px 30px rgba(88,101,242,0.5);
-        }
-        .download-btn:hover { transform: translateY(-5px); box-shadow: 0 18px 50px rgba(88,101,242,0.7); }
-        .fix-btn { background: linear-gradient(135deg, var(--fix-color), #ffaa33) !important; }
-        .report-btn {
-            background: rgba(255,85,85,0.15); color: #ff5555; font-size: 0.98rem; flex: 0 0 auto;
-        }
-        .report-btn:hover { background: rgba(255,85,85,0.3); }
+        .download-btn, .report-btn { flex: 1; min-width: 140px; padding: 14px; border-radius: 12px; text-decoration: none; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; cursor: pointer; text-transform: uppercase; font-size: 0.9rem; }
+        
+        .download-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--accent); color: var(--accent); }
+        .download-btn:hover { background: var(--accent); color: #000; box-shadow: var(--glow); transform: translateY(-3px); }
+        
+        .fix-btn { border-color: var(--fix-color); color: var(--fix-color); }
+        .fix-btn:hover { background: var(--fix-color); color: #000; box-shadow: 0 0 20px rgba(255,159,67,0.5); }
+        
+        .report-btn { background: rgba(255,71,87,0.1); color: #ff4757; flex: 0 0 auto; border: 1px solid transparent; }
+        .report-btn:hover { background: #ff4757; color: white; box-shadow: 0 0 15px rgba(255,71,87,0.4); }
 
-        .support-section {
-            margin: 70px auto 100px; padding: 40px 30px; background: var(--card-bg);
-            border-radius: 20px; border: 1px solid var(--card-border); text-align: center; max-width: 700px;
-        }
-        .join-discord-btn {
-            display: inline-flex; align-items: center; gap: 12px; padding: 16px 36px;
-            background: #5865f2; color: white; font-weight: 700; font-size: 1.1rem;
-            border-radius: 50px; text-decoration: none; transition: all 0.3s;
-            box-shadow: 0 8px 25px rgba(88,101,242,0.4);
-        }
-        .join-discord-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(88,101,242,0.6); background: #4752c4; }
+        .support-section { margin: 80px auto; padding: 50px 30px; background: var(--card-bg); backdrop-filter: blur(15px); border-radius: 20px; border: 1px solid var(--card-border); text-align: center; max-width: 700px; box-shadow: var(--shadow); }
+        .join-discord-btn { display: inline-flex; align-items: center; gap: 12px; padding: 16px 36px; background: #5865f2; color: white; font-weight: 700; font-family: 'Orbitron'; border-radius: 50px; text-decoration: none; transition: 0.3s; box-shadow: 0 5px 20px rgba(88,101,242,0.4); }
+        .join-discord-btn:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(88,101,242,0.6); }
 
-        .theme-toggle {
-            position: fixed; top: 24px; right: 24px; z-index: 1000;
-            background: rgba(255,255,255,0.08); backdrop-filter: blur(12px);
-            border: 1px solid var(--card-border); border-radius: 999px; padding: 12px 20px;
-            display: flex; align-items: center; gap: 10px; cursor: pointer;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.35);
-        }
-        @media (max-width: 768px) { .theme-toggle { top: 16px; right: 16px; padding: 10px 16px; } }
+        .theme-toggle { position: fixed; top: 24px; right: 24px; z-index: 1000; background: rgba(0,0,0,0.5); backdrop-filter: blur(12px); border: 1px solid var(--card-border); border-radius: 50px; padding: 12px 20px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.3s; }
+        .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
 
-        #galaxy { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .header h1 { font-size: 2.5rem; } }
     </style>
 </head>
 <body data-theme="dark">
 
+    <div class="nebula"></div>
+    <canvas id="galaxy"></canvas>
     <div id="toast-container"></div>
 
-    <div class="theme-toggle" onclick="toggleTheme()" aria-label="Chuyển chế độ sáng/tối">
+    <div class="theme-toggle" onclick="toggleTheme()">
         <i class="fas fa-moon" id="theme-icon"></i>
         <span>Chế độ</span>
     </div>
-
-    <canvas id="galaxy"></canvas>
 
     <header class="header">
         <h1>NULLIX HUB</h1>
@@ -194,11 +155,11 @@
     <div class="container">
         <div class="search-container">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" id="searchInput" class="search-input" placeholder="Tìm executor (ví dụ: arceus, delta, salo...)" aria-label="Tìm kiếm executor">
+            <input type="text" id="searchInput" class="search-input" placeholder="Tìm executor (ví dụ: arceus, delta, salo...)">
         </div>
 
         <button id="refresh-all" class="refresh-btn" onclick="loadLinks(false)">
-            <i class="fas fa-sync-alt"></i> Refresh All Links
+            <i class="fas fa-sync-alt"></i> Làm Mới Dữ Liệu
         </button>
 
         <div class="section-header">
@@ -214,17 +175,14 @@
         <div class="grid" id="pc-grid"></div>
 
         <div class="support-section">
-            <h2 style="margin-bottom: 20px; color: var(--primary);">Cần hỗ trợ hoặc báo lỗi?</h2>
-            <p style="margin-bottom: 30px; color: var(--text-secondary);">
-                Tham gia server Discord chính thức để được hỗ trợ nhanh, cập nhật link mới nhất và trao đổi với cộng đồng!
-            </p>
-            <a href="https://discord.gg/59XF8hMW5R" target="_blank" class="join-discord-btn" aria-label="Tham gia Discord">
-                <i class="fab fa-discord" style="font-size:1.5rem;"></i>
-                Tham gia Discord ngay
+            <h2 style="margin-bottom: 20px; color: var(--primary); font-family: 'Orbitron';">Cần hỗ trợ hoặc báo lỗi?</h2>
+            <p style="margin-bottom: 30px; color: var(--text-secondary);">Tham gia server Discord chính thức để được hỗ trợ nhanh, cập nhật link mới nhất và trao đổi với cộng đồng!</p>
+            <a href="https://discord.gg/59XF8hMW5R" target="_blank" class="join-discord-btn">
+                <i class="fab fa-discord" style="font-size:1.5rem;"></i> Cộng Đồng Discord
             </a>
         </div>
 
-        <footer style="text-align:center; padding:80px 0 40px; opacity:0.7; font-size:0.95rem;">
+        <footer style="text-align:center; padding-bottom: 40px; opacity:0.7; font-size:0.95rem;">
             Designed & Maintained by <strong style="color:var(--accent);">Nullix (BNMhuy)</strong> • 2025–2026
         </footer>
     </div>
@@ -239,10 +197,9 @@
             toast.className = `toast ${type}`;
             toast.innerHTML = `<i class="${type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'}"></i> ${message}`;
             container.appendChild(toast);
-            setTimeout(() => toast.remove(), 4200);
+            setTimeout(() => toast.remove(), 4000);
         }
 
-        // Theme
         function toggleTheme() {
             const current = document.body.getAttribute('data-theme') || 'dark';
             const next = current === 'dark' ? 'light' : 'dark';
@@ -258,7 +215,7 @@
             $('#theme-icon').className = savedTheme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
         }
 
-        // Data
+        // Data Cũ Giữ Nguyên
         const androidExecutors = [
             { id: 'arceus', name: 'Arceus X NEO', ver: '2.703', icon: 'https://sf-static.upanhlaylink.com/img/image_2025091341b69c6afa4e02709bf1ba299bdbafbd.jpg', types: ['qt', 'vng'] },
             { id: 'codex',   name: 'Codex',       ver: '2.703', icon: 'https://codex.lol/static/icons/icon.svg', types: ['qt', 'vng'] },
@@ -287,67 +244,42 @@
 
             list.forEach(ex => {
                 const isFix = ex.isFix || false;
-                const badgeHTML = '';
                 
-                // Status Handling
                 let statusHTML = '';
                 if (isPc) {
-                    statusHTML += `<div id="status-${ex.id}" class="mini-status status-offline">PC: Checking...</div>`;
-                    // Thêm status cho TNG Roblox nếu là TNG PC
-                    if (ex.id === 'tng_pc') {
-                        statusHTML += `<div id="status-tng_roblox" class="mini-status status-offline">ROBLOX TNG: Checking...</div>`;
-                    }
+                    statusHTML += `<div id="status-${ex.id}" class="mini-status status-offline">PC</div>`;
+                    if (ex.id === 'tng_pc') statusHTML += `<div id="status-tng_roblox" class="mini-status status-offline">ROBLOX</div>`;
                 } else {
-                    statusHTML = ex.types.map(t => `<div id="status-${ex.id}-${t}" class="mini-status status-offline">${t.toUpperCase()}: Checking...</div>`).join('');
+                    statusHTML = ex.types.map(t => `<div id="status-${ex.id}-${t}" class="mini-status status-offline">${t.toUpperCase()}</div>`).join('');
                 }
 
-                // Button Handling
                 let btnHTML = '';
                 if (isPc) {
-                     btnHTML += `<a href="#" class="download-btn ${isFix ? 'fix-btn' : ''}" id="btn-${ex.id}">
-                         <i class="${isFix ? 'fas fa-tools' : 'fas fa-desktop'}"></i> ${isFix ? 'Download Fix' : 'Download PC'}
-                       </a>`;
-                     
-                     // Thêm nút Download Roblox cho TNG PC
-                     if (ex.id === 'tng_pc') {
-                         btnHTML += `<a href="#" class="download-btn" id="btn-tng_roblox" style="background: linear-gradient(135deg, #FF512F, #DD2476);">
-                             <i class="fas fa-gamepad"></i> Roblox TNG
-                         </a>`;
-                     }
+                     btnHTML += `<a href="#" class="download-btn ${isFix ? 'fix-btn' : ''}" id="btn-${ex.id}"><i class="${isFix ? 'fas fa-tools' : 'fas fa-download'}"></i> ${isFix ? 'Tải Fix' : 'Tải PC'}</a>`;
+                     if (ex.id === 'tng_pc') btnHTML += `<a href="#" class="download-btn" id="btn-tng_roblox" style="border-color:#ff4757; color:#ff4757;"><i class="fas fa-gamepad"></i> Roblox</a>`;
                 } else {
-                    btnHTML = ex.types.map(t => `
-                        <a href="#" class="download-btn" id="btn-${ex.id}-${t}">
-                          <i class="fas fa-download"></i> ${t.toUpperCase()}
-                        </a>
-                    `).join('');
+                    btnHTML = ex.types.map(t => `<a href="#" class="download-btn" id="btn-${ex.id}-${t}"><i class="fas fa-download"></i> Bản ${t.toUpperCase()}</a>`).join('');
                 }
-
-                const reportHTML = `<a href="https://discord.gg/59XF8hMW5R" target="_blank" class="report-btn">
-                    <i class="fas fa-bug"></i> Báo lỗi
-                </a>`;
 
                 container.innerHTML += `
                     <div class="card ${isFix ? 'fix-card' : ''}" data-name="${ex.name.toLowerCase()}" data-id="${ex.id}">
-                        ${badgeHTML}
                         <div class="card-top">
-                            <div class="card-icon">
-                                <img src="${ex.icon}" alt="${ex.name}" loading="lazy" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3039/3039403.png'">
-                            </div>
+                            <div class="card-icon"><img src="${ex.icon}" alt="${ex.name}" loading="lazy" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3039/3039403.png'"></div>
                             <div>
                                 <div class="card-title">${ex.name}</div>
-                                ${ex.ver ? `<div style="color:var(--text-secondary); font-size:0.9rem;">v${ex.ver}</div>` : ''}
+                                ${ex.ver ? `<div style="color:var(--text-secondary); font-size:0.85rem;">Version: ${ex.ver}</div>` : ''}
                             </div>
                         </div>
                         <div class="status-group">${statusHTML}</div>
                         <div class="button-group">
                             ${btnHTML}
-                            ${reportHTML}
+                            <a href="https://discord.gg/59XF8hMW5R" target="_blank" class="report-btn" title="Báo Lỗi"><i class="fas fa-bug"></i></a>
                         </div>
                     </div>`;
             });
         }
 
-        // Load links
+        // KHO 111 CŨ
         let isRefreshing = false;
         async function loadLinks(silent = false) {
             if (isRefreshing) return;
@@ -355,7 +287,7 @@
 
             try {
                 const res = await fetch('https://raw.githubusercontent.com/HypatiaDz/111/main/links.json?t=' + Date.now());
-                if (!res.ok) throw new Error('Network response was not ok');
+                if (!res.ok) throw new Error('Lỗi Mạng');
                 const data = await res.json();
 
                 const update = (id, link, prefix) => {
@@ -364,93 +296,72 @@
                     if (!btn || !st) return;
 
                     if (link && typeof link === 'string' && link.startsWith('http')) {
-                        btn.href = link;
-                        btn.target = "_blank";
-                        st.className = "mini-status status-online";
-                        st.innerText = `${prefix}: Online`;
+                        btn.href = link; btn.target = "_blank";
+                        st.className = "mini-status status-online"; st.innerText = `${prefix} Sẵn Sàng`;
                     } else {
                         btn.href = "#";
-                        st.className = "mini-status status-offline";
-                        st.innerText = `${prefix}: Bảo trì`;
+                        st.className = "mini-status status-offline"; st.innerText = `${prefix} Bảo Trì`;
                     }
                 };
 
-                androidExecutors.forEach(ex => {
-                    ex.types.forEach(t => update(`${ex.id}-${t}`, data[`${ex.id}_${t}`], t.toUpperCase()));
-                });
-
-                pcExecutors.forEach(ex => {
-                    update(ex.id, data[ex.id], ex.isFix ? 'Fix Tool' : 'PC');
-                });
-                
-                // Cập nhật riêng cho nút Roblox TNG
-                update('tng_roblox', data['tng_roblox'], 'ROBLOX TNG');
+                androidExecutors.forEach(ex => { ex.types.forEach(t => update(`${ex.id}-${t}`, data[`${ex.id}_${t}`], t.toUpperCase())); });
+                pcExecutors.forEach(ex => { update(ex.id, data[ex.id], ex.isFix ? 'Fix Tool' : 'PC'); });
+                update('tng_roblox', data['tng_roblox'], 'Roblox TNG');
 
                 const time = new Date().toLocaleString('vi-VN', {hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
-                $('#android-update').textContent = `Cập nhật: ${time}`;
-                $('#pc-update').textContent = `Cập nhật: ${time}`;
+                $('#android-update').textContent = `Sys.Update: ${time}`;
+                $('#pc-update').textContent = `Sys.Update: ${time}`;
 
-                if (!silent) showToast("Cập nhật link thành công!", "success");
+                if (!silent) showToast("Đồng bộ hệ thống thành công!", "success");
             } catch (err) {
                 console.error("Load links failed:", err);
-                showToast("Không thể tải link. Vui lòng thử lại sau.", "error");
+                showToast("Lỗi kết nối máy chủ.", "error");
             } finally {
                 isRefreshing = false;
             }
         }
 
-        // Search với debounce
         let searchTimeout;
         $('#searchInput').addEventListener('input', e => {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 const q = e.target.value.toLowerCase().trim();
-                $$('.card').forEach(card => {
-                    card.style.display = card.dataset.name.includes(q) ? '' : 'none';
-                });
+                $$('.card').forEach(card => { card.style.display = card.dataset.name.includes(q) ? '' : 'none'; });
             }, 300);
         });
 
-        // Right click copy + maintenance click
         document.addEventListener('contextmenu', e => {
             const btn = e.target.closest('.download-btn');
             if (btn && btn.href && btn.href.startsWith('http')) {
                 e.preventDefault();
-                navigator.clipboard.writeText(btn.href).then(() => showToast("Đã copy link tải xuống!", "success"));
+                navigator.clipboard.writeText(btn.href).then(() => showToast("Đã chép link tải!", "success"));
             }
         });
 
         document.addEventListener('click', e => {
             const btn = e.target.closest('.download-btn');
-            if (btn && btn.href === '#') {
+            if (btn && btn.href.includes('#')) {
                 e.preventDefault();
-                showToast("Executor này đang bảo trì, vui lòng thử lại sau!", "error");
+                showToast("Phiên bản này đang bảo trì!", "error");
             }
         });
 
-        // Canvas Galaxy tối ưu
+        // Hạt nền Vũ Trụ Mượt Mà
         const canvas = document.getElementById('galaxy');
         const ctx = canvas.getContext('2d');
         let stars = [];
-        let starColor = '#d0d0ff';
+        let starColor = '#00d4ff';
         let scrollOffset = 0;
-        let resizeTimeout;
 
-        function updateStarColor() {
-            starColor = document.body.getAttribute('data-theme') === 'light' ? "#777" : "#d0d0ff";
-        }
+        function updateStarColor() { starColor = document.body.getAttribute('data-theme') === 'light' ? "#777" : "rgba(0, 212, 255, 0.8)"; }
 
         function initStars() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            stars = [];
-            const count = window.innerWidth < 768 ? 80 : 120;
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight; stars = [];
+            const count = window.innerWidth < 768 ? 80 : 130;
             for (let i = 0; i < count; i++) {
                 stars.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    size: Math.random() * 2.2 + 0.4,
-                    speed: Math.random() * 0.5 + 0.08
+                    x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                    size: Math.random() * 2 + 0.5, speed: Math.random() * 0.5 + 0.1
                 });
             }
         }
@@ -459,27 +370,18 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = starColor;
             stars.forEach(s => {
-                ctx.beginPath();
-                ctx.arc(s.x, s.y + scrollOffset * s.speed * 0.5, s.size, 0, Math.PI * 2);
-                ctx.fill();
-                s.y += s.speed;
-                if (s.y > canvas.height) s.y = -s.size;
+                ctx.beginPath(); ctx.arc(s.x, s.y + scrollOffset * s.speed * 0.3, s.size, 0, Math.PI * 2); ctx.fill();
+                s.y += s.speed; if (s.y > canvas.height) s.y = -s.size;
             });
             requestAnimationFrame(animateStars);
         }
 
         window.addEventListener('scroll', () => { scrollOffset = window.scrollY; });
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(initStars, 200);
-        });
+        window.addEventListener('resize', () => { setTimeout(initStars, 200); });
 
-        // Init
         renderExecutors(androidExecutors, 'android-grid');
         renderExecutors(pcExecutors, 'pc-grid', true);
-        updateStarColor();
-        initStars();
-        animateStars();
+        updateStarColor(); initStars(); animateStars();
         loadLinks(true);
         setInterval(() => loadLinks(true), 45000);
     </script>

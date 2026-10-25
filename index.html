@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>SnapText AI - Giải Bài Tập Siêu Tốc 1-2 Giây</title>
+  <title>SnapText AI - Giải Nhiều Ảnh & Chat Hỏi Lại Realtime</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Marked.js để render markdown bài tập -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -57,6 +57,21 @@
       color: #38bdf8;
       font-family: monospace;
     }
+    /* Thanh cuộn mượt */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-purple-600 selection:text-white">
@@ -71,9 +86,9 @@
         <div>
           <div class="flex items-center space-x-1.5">
             <h1 class="font-bold text-base sm:text-lg leading-tight text-white">SnapText AI</h1>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-emerald-500 to-teal-500 text-white uppercase tracking-wider">Tốc Độ Cao 1-2s</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-emerald-500 to-teal-500 text-white uppercase tracking-wider">Multi-Shot & Chat</span>
           </div>
-          <p class="text-xs text-slate-400">Gemini 3.5 Flash-Lite • Giải bài tập trong 1-2 giây</p>
+          <p class="text-xs text-slate-400">Nhiều ảnh • Tùy chỉnh yêu cầu • Hỏi đáp trực tiếp</p>
         </div>
       </div>
 
@@ -89,10 +104,10 @@
   <div id="screenTorchOverlay" class="fixed inset-0 bg-white pointer-events-none z-30 opacity-0 transition-opacity duration-300"></div>
 
   <!-- Vùng nội dung chính -->
-  <main class="flex-1 max-w-3xl w-full mx-auto p-4 flex flex-col">
+  <main class="flex-1 max-w-3xl w-full mx-auto p-3 sm:p-4 flex flex-col">
 
-    <!-- ================= GIAO DIỆN 1: CHỤP ẢNH / TẢI ẢNH ================= -->
-    <section id="captureScreen" class="flex-1 flex flex-col space-y-3.5">
+    <!-- ================= GIAO DIỆN 1: CHỤP / TẢI NHIỀU ẢNH & NHẬP MÔ TẢ ================= -->
+    <section id="captureScreen" class="flex-1 flex flex-col space-y-3">
       
       <!-- Chuyển đổi: Giải bài tập vs Chỉ chép chữ -->
       <div class="grid grid-cols-2 gap-2 bg-slate-900 p-1.5 rounded-2xl border border-slate-800">
@@ -106,8 +121,8 @@
         </button>
       </div>
 
-      <!-- Khung Camera SIÊU TO KHỔNG LỒ (520px - 620px) -->
-      <div id="cameraContainer" class="relative w-full h-[520px] sm:h-[620px] bg-black rounded-3xl overflow-hidden border-2 border-slate-800 shadow-2xl flex items-center justify-center group transition-all duration-300">
+      <!-- Khung Camera To Khổ Lớn -->
+      <div id="cameraContainer" class="relative w-full h-[380px] sm:h-[480px] bg-black rounded-3xl overflow-hidden border-2 border-slate-800 shadow-2xl flex items-center justify-center group transition-all duration-300">
         <video id="cameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
         
         <div id="cameraOffPlaceholder" class="hidden absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-950/95 z-20">
@@ -122,106 +137,136 @@
           <div class="flex justify-between items-center">
             <span class="text-xs text-amber-300 bg-black/80 px-3 py-1 rounded-lg backdrop-blur border border-amber-500/40 flex items-center space-x-1.5 font-semibold">
               <i class="ph-bold ph-lightning"></i>
-              <span id="guideTag">Camera To Toàn Khung (100% diện tích)</span>
+              <span id="guideTag">Camera Toàn Khung (100% diện tích)</span>
             </span>
-            <span class="text-[11px] text-emerald-400 bg-black/70 px-2.5 py-1 rounded-md font-mono">⚡ 1-2 Giây</span>
+            <span id="imageCounterBadge" class="hidden text-xs text-white bg-purple-600/90 border border-purple-400 px-2.5 py-1 rounded-full font-bold">
+              0 ảnh
+            </span>
           </div>
           <div class="text-center">
             <span class="text-xs sm:text-sm text-white bg-black/80 px-4 py-2 rounded-full backdrop-blur border border-white/20 shadow-lg">
-              Chụp đề bài để chữ tuôn ra tức thì
+              Chụp 1 hoặc nhiều trang đề bài
             </span>
           </div>
           <div class="text-right">
-            <span id="serverIndicator" class="text-[11px] text-slate-300 bg-black/70 px-2.5 py-1 rounded-md">Gemini 3.5 Turbo</span>
+            <span class="text-[11px] text-slate-300 bg-black/70 px-2.5 py-1 rounded-md">Gemini 3.5 Turbo</span>
           </div>
         </div>
 
+        <!-- Nút tiện ích Flash & Đổi cam -->
         <div class="absolute top-4 right-4 flex space-x-2.5 z-10">
-          <button id="btnTorch" title="Bật/Tắt Đèn Flash" class="w-12 h-12 rounded-full bg-black/75 backdrop-blur hover:bg-black text-white flex items-center justify-center transition border border-white/20 active:scale-95 shadow-xl">
-            <i id="torchIcon" class="ph-bold ph-flashlight text-2xl"></i>
+          <button id="btnTorch" title="Bật/Tắt Đèn Flash" class="w-11 h-11 rounded-full bg-black/75 backdrop-blur hover:bg-black text-white flex items-center justify-center transition border border-white/20 active:scale-95 shadow-xl">
+            <i id="torchIcon" class="ph-bold ph-flashlight text-xl"></i>
           </button>
-          <button id="btnSwitchCamera" title="Đổi camera trước / sau" class="w-12 h-12 rounded-full bg-black/75 backdrop-blur hover:bg-black text-white flex items-center justify-center transition border border-white/20 active:scale-95 shadow-xl">
-            <i class="ph-bold ph-arrows-clockwise text-2xl"></i>
+          <button id="btnSwitchCamera" title="Đổi camera trước / sau" class="w-11 h-11 rounded-full bg-black/75 backdrop-blur hover:bg-black text-white flex items-center justify-center transition border border-white/20 active:scale-95 shadow-xl">
+            <i class="ph-bold ph-arrows-clockwise text-xl"></i>
           </button>
         </div>
       </div>
 
-      <!-- Nút thao tác -->
-      <div class="grid grid-cols-2 gap-3 pt-1">
-        <button id="btnCapture" class="col-span-2 py-4 px-4 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:opacity-95 active:scale-[0.99] font-bold text-white shadow-xl shadow-purple-600/30 flex items-center justify-center space-x-2.5 transition text-base sm:text-lg">
-          <i id="btnCaptureIcon" class="ph-bold ph-lightning text-2xl text-amber-300 animate-pulse"></i>
-          <span id="btnCaptureText">Chụp & Giải Siêu Tốc (1-2s)</span>
+      <!-- KHAY DANH SÁCH ẢNH ĐÃ CHỌN (HIỂN THỊ KHI CÓ ÍT NHẤT 1 ẢNH) -->
+      <div id="imagesTray" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-3 flex flex-col space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
+            <i class="ph-bold ph-images text-indigo-400"></i>
+            <span>Các ảnh đã chọn (<span id="trayCount">0</span> ảnh):</span>
+          </span>
+          <button id="btnClearAllImages" class="text-[11px] text-rose-400 hover:text-rose-300">Xóa tất cả</button>
+        </div>
+        
+        <div id="thumbnailsContainer" class="flex items-center space-x-2.5 overflow-x-auto pb-1 pt-1">
+          <!-- Thumbnail preview render động tại đây -->
+        </div>
+      </div>
+
+      <!-- Ô NHẬP MÔ TẢ / YÊU CẦU CỤ THỂ CHO BÀI TẬP -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3">
+        <div class="flex items-center justify-between mb-1.5">
+          <label for="inputPromptDescription" class="text-xs font-semibold text-slate-300 flex items-center space-x-1.5">
+            <i class="ph-bold ph-chat-circle-dots text-amber-400"></i>
+            <span>Mô tả / Yêu cầu cụ thể (Tùy chọn):</span>
+          </label>
+          <span class="text-[10px] text-slate-400">Ví dụ: "chỉ giải câu 3", "giải chi tiết bước 2"...</span>
+        </div>
+        <textarea id="inputPromptDescription" rows="2" placeholder="Ví dụ: Chỉ giải câu 2b; Hoặc: Dịch sang tiếng Anh; Hoặc: Giải thích chi tiết bước vẽ đồ thị..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition resize-none"></textarea>
+      </div>
+
+      <!-- HỆ THỐNG NÚT BẤM THAO TÁC -->
+      <div id="actionButtonsDefault" class="grid grid-cols-2 gap-3 pt-1">
+        <button id="btnCaptureAdd" class="col-span-2 py-3.5 px-4 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:opacity-95 active:scale-[0.99] font-bold text-white shadow-xl shadow-purple-600/30 flex items-center justify-center space-x-2.5 transition text-base">
+          <i id="btnCaptureIcon" class="ph-bold ph-camera text-2xl text-amber-300 animate-pulse"></i>
+          <span id="btnCaptureText">Chụp Thêm Ảnh</span>
         </button>
 
-        <label class="cursor-pointer py-3.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] border border-slate-800 flex items-center justify-center space-x-2 text-slate-200 transition text-xs sm:text-sm font-medium">
-          <i class="ph-bold ph-image text-xl text-blue-400"></i>
-          <span>Chọn đề bài từ máy</span>
-          <input type="file" id="fileInput" accept="image/*" class="hidden" />
+        <label class="cursor-pointer py-3 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] border border-slate-800 flex items-center justify-center space-x-2 text-slate-200 transition text-xs sm:text-sm font-medium">
+          <i class="ph-bold ph-images text-xl text-blue-400"></i>
+          <span>Chọn nhiều ảnh từ máy</span>
+          <input type="file" id="fileInput" accept="image/*" multiple class="hidden" />
         </label>
 
-        <button id="btnPaste" class="py-3.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] border border-slate-800 flex items-center justify-center space-x-2 text-slate-200 transition text-xs sm:text-sm font-medium">
+        <button id="btnPaste" class="py-3 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] border border-slate-800 flex items-center justify-center space-x-2 text-slate-200 transition text-xs sm:text-sm font-medium">
           <i class="ph-bold ph-clipboard-text text-xl text-indigo-400"></i>
-          <span>Dán đề bài (Ctrl+V)</span>
+          <span>Dán ảnh (Ctrl+V)</span>
+        </button>
+      </div>
+
+      <!-- Nút Gửi khi đã có ít nhất 1 ảnh -->
+      <div id="actionButtonsWithImages" class="hidden grid grid-cols-2 gap-3 pt-1">
+        <button id="btnCaptureMore" class="py-3.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-[0.99] font-semibold text-slate-200 border border-slate-700 flex items-center justify-center space-x-2 transition text-sm">
+          <i class="ph-bold ph-plus-circle text-lg text-emerald-400"></i>
+          <span>Chụp thêm ảnh nữa</span>
+        </button>
+
+        <button id="btnSubmitSolve" class="py-3.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:opacity-95 active:scale-[0.99] font-bold text-white shadow-xl shadow-purple-600/30 flex items-center justify-center space-x-2 transition text-sm">
+          <i class="ph-bold ph-lightning text-xl text-amber-300"></i>
+          <span id="btnSubmitSolveText">Gửi & Giải Ngay</span>
         </button>
       </div>
     </section>
 
-    <!-- ================= GIAO DIỆN 2: KẾT QUẢ GIẢI BÀI TẬP (STREAMING REALTIME) ================= -->
-    <section id="resultScreen" class="hidden flex-1 flex flex-col space-y-3.5">
+    <!-- ================= GIAO DIỆN 2: PHÒNG CHAT & HỎI ĐÁP BÀI GIẢI (MULTI-TURN CHAT) ================= -->
+    <section id="resultScreen" class="hidden flex-1 flex flex-col space-y-3">
       
-      <!-- Top Bar -->
+      <!-- Thanh Top Bar -->
       <div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-        <button id="btnBackToCapture" class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition">
+        <button id="btnBackToCapture" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition">
           <i class="ph-bold ph-arrow-left"></i>
-          <span>Chụp câu khác</span>
+          <span>Chụp đề mới</span>
         </button>
-        <span id="streamingStatusBadge" class="text-xs text-amber-300 font-semibold flex items-center space-x-1.5 bg-purple-950/80 border border-purple-800/60 px-3 py-1.5 rounded-full">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-          <span id="streamingStatusText">AI đang giải...</span>
-        </span>
-      </div>
 
-      <!-- Preview ảnh vừa chụp -->
-      <div class="bg-slate-900 rounded-xl border border-slate-800 p-2.5 flex items-center space-x-3">
-        <img id="resultImagePreview" src="" alt="Đề bài" class="w-16 h-16 object-cover rounded-lg border border-slate-700 cursor-pointer shadow hover:opacity-85 transition" title="Bấm để xem ảnh lớn" />
-        <div class="flex-1 min-w-0">
-          <p class="text-xs font-semibold text-white">Ảnh đề bài vừa gửi</p>
-          <p id="activeModelLabel" class="text-[11px] text-slate-400 truncate mt-0.5">Model: Gemini 3.5 Flash-Lite</p>
-          <button id="btnReOcr" class="mt-1 text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center space-x-1">
-            <i class="ph-bold ph-arrows-clockwise"></i>
-            <span>Giải lại bài này</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Khung Lời giải Render Markdown Tuôn Chữ Realtime -->
-      <div class="flex-1 flex flex-col min-h-[420px] bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
-        <div class="px-4 py-2.5 bg-slate-800/90 border-b border-slate-700/80 flex items-center justify-between">
-          <span class="text-xs font-semibold text-slate-200 flex items-center space-x-1.5">
-            <i class="ph-bold ph-sparkle text-amber-400 animate-spin"></i>
-            <span id="solutionTitle">Gia sư AI đang viết lời giải...</span>
+        <div class="flex items-center space-x-2">
+          <span id="streamingStatusBadge" class="text-xs text-amber-300 font-semibold flex items-center space-x-1.5 bg-purple-950/80 border border-purple-800/60 px-3 py-1 rounded-full">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span id="streamingStatusText">AI đang giải...</span>
           </span>
-          <button id="btnSpeak" title="Đọc lời giải" class="px-2.5 py-1 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition text-xs flex items-center space-x-1">
-            <i class="ph-bold ph-speaker-high"></i>
-            <span>Đọc</span>
-          </button>
-        </div>
-
-        <div id="solutionRendered" class="flex-1 p-5 overflow-y-auto text-slate-100 text-sm sm:text-base leading-relaxed prose-ai typing-cursor">
-          <p class="text-purple-300 italic animate-pulse">⚡ Đang kết nối Mắt thần Gemini...</p>
         </div>
       </div>
 
-      <!-- Nút Copy -->
-      <div class="grid grid-cols-2 gap-3 pt-1">
-        <button id="btnCopyText" class="py-4 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-95 active:scale-[0.99] font-bold text-white shadow-lg shadow-purple-500/25 flex items-center justify-center space-x-2 transition text-sm sm:text-base">
-          <i id="copyIcon" class="ph-bold ph-copy text-xl"></i>
-          <span id="copyBtnText">Sao Chép Lời Giải</span>
-        </button>
+      <!-- VÙNG LỊCH SỬ CHAT TRỰC TUYẾN (CHAT MESSAGES CONTAINER) -->
+      <div id="chatMessagesContainer" class="flex-1 bg-slate-900 rounded-2xl border border-slate-800 p-4 overflow-y-auto space-y-4 max-h-[60vh] sm:max-h-[65vh]">
+        <!-- Các tin nhắn (Câu hỏi ban đầu + ảnh, Lời giải AI, Tin nhắn hỏi lại) sẽ được append vào đây -->
+      </div>
 
-        <button id="btnDownloadTxt" class="py-4 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 font-semibold text-slate-200 active:scale-[0.99] flex items-center justify-center space-x-2 transition text-sm sm:text-base">
-          <i class="ph-bold ph-download-simple text-xl text-indigo-400"></i>
-          <span>Lưu file (.txt)</span>
+      <!-- GỢI Ý CÂU HỎI NHANH (QUICK CHIPS) -->
+      <div class="flex items-center space-x-2 overflow-x-auto pb-1 text-xs">
+        <span class="text-slate-400 whitespace-nowrap text-[11px] font-medium">Hỏi nhanh:</span>
+        <button class="quick-chip whitespace-nowrap px-3 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-full transition active:scale-95">
+          💡 Giải thích chi tiết từng bước
+        </button>
+        <button class="quick-chip whitespace-nowrap px-3 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-full transition active:scale-95">
+          🔄 Có cách giải nào khác không?
+        </button>
+        <button class="quick-chip whitespace-nowrap px-3 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-full transition active:scale-95">
+          ✏️ Kiểm tra lại kết quả
+        </button>
+      </div>
+
+      <!-- KHUNG NHẬP CHAT HỎI LẠI Ở ĐÁY MÀN HÌNH -->
+      <div class="sticky bottom-0 bg-slate-900 border border-slate-800 rounded-2xl p-2 shadow-2xl flex items-center space-x-2">
+        <textarea id="inputFollowUpChat" rows="1" placeholder="Hỏi lại bài này... (ví dụ: tại sao dòng 2 lại ra như vậy?)" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 transition resize-none"></textarea>
+        
+        <button id="btnSendFollowUp" class="w-11 h-11 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center hover:opacity-90 active:scale-95 transition shadow-lg shadow-purple-500/25 shrink-0">
+          <i class="ph-bold ph-paper-plane-right text-lg"></i>
         </button>
       </div>
 
@@ -257,7 +302,7 @@
     </div>
   </div>
 
-  <!-- Toast -->
+  <!-- Toast Thông báo -->
   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden px-5 py-3 rounded-xl bg-slate-800 text-white text-xs font-medium border border-slate-700 shadow-2xl flex items-center space-x-2 transition-all duration-300">
     <i id="toastIcon" class="ph-fill ph-check-circle text-emerald-400 text-lg"></i>
     <span id="toastMsg">Đã sao chép!</span>
@@ -277,7 +322,7 @@
     // Key mặc định an toàn chống bị GitHub secret scanner chặn
     const DEFAULT_KEY = ['AQ', 'Ab8RN6LgIMVQa7MRpGhY48sQOdn3gfQcBqxA3oaD6bIbniABjQ'].join('.');
 
-    // DANH SÁCH MODEL TỐC ĐỘ SIÊU CAO (Phản hồi trong 1-2s, KHÔNG bị treo như 3.8)
+    // DANH SÁCH MODEL TỐC ĐỘ SIÊU CAO (Phản hồi trong 1-2s)
     const FAST_MODELS = [
       'gemini-3.5-flash-lite',
       'gemini-3.5-flash',
@@ -289,41 +334,52 @@
     let currentFacingMode = 'environment';
     let isTorchOn = false;
     let appMode = 'solve';
-    let currentProcessedBlob = null;
-    let currentImageObjectUrl = null;
-    let currentStreamedText = '';
 
+    // Danh sách các ảnh đính kèm: mảng chứa các object { blob, dataUrl, base64 }
+    let attachedImages = [];
+
+    // Lịch sử hội thoại chat đa lượt với Gemini: [{ role: 'user'|'model', parts: [...] }]
+    let conversationHistory = [];
+    let isGenerating = false;
+
+    // Elements
     const video = document.getElementById('cameraVideo');
     const cameraOffPlaceholder = document.getElementById('cameraOffPlaceholder');
-    const btnCapture = document.getElementById('btnCapture');
-    const btnCaptureIcon = document.getElementById('btnCaptureIcon');
-    const btnCaptureText = document.getElementById('btnCaptureText');
+    const btnRetryCamera = document.getElementById('btnRetryCamera');
     const btnSwitchCamera = document.getElementById('btnSwitchCamera');
     const btnTorch = document.getElementById('btnTorch');
     const torchIcon = document.getElementById('torchIcon');
-    const btnRetryCamera = document.getElementById('btnRetryCamera');
-    const fileInput = document.getElementById('fileInput');
-    const btnPaste = document.getElementById('btnPaste');
+    const imageCounterBadge = document.getElementById('imageCounterBadge');
 
     const tabModeSolve = document.getElementById('tabModeSolve');
     const tabModeOcr = document.getElementById('tabModeOcr');
     const guideTag = document.getElementById('guideTag');
 
+    const imagesTray = document.getElementById('imagesTray');
+    const trayCount = document.getElementById('trayCount');
+    const thumbnailsContainer = document.getElementById('thumbnailsContainer');
+    const btnClearAllImages = document.getElementById('btnClearAllImages');
+    const inputPromptDescription = document.getElementById('inputPromptDescription');
+
+    const actionButtonsDefault = document.getElementById('actionButtonsDefault');
+    const actionButtonsWithImages = document.getElementById('actionButtonsWithImages');
+    const btnCaptureAdd = document.getElementById('btnCaptureAdd');
+    const btnCaptureIcon = document.getElementById('btnCaptureIcon');
+    const btnCaptureText = document.getElementById('btnCaptureText');
+    const btnCaptureMore = document.getElementById('btnCaptureMore');
+    const btnSubmitSolve = document.getElementById('btnSubmitSolve');
+    const btnSubmitSolveText = document.getElementById('btnSubmitSolveText');
+    const fileInput = document.getElementById('fileInput');
+    const btnPaste = document.getElementById('btnPaste');
+
     const captureScreen = document.getElementById('captureScreen');
     const resultScreen = document.getElementById('resultScreen');
     const btnBackToCapture = document.getElementById('btnBackToCapture');
-    const resultImagePreview = document.getElementById('resultImagePreview');
-    const activeModelLabel = document.getElementById('activeModelLabel');
-    const solutionRendered = document.getElementById('solutionRendered');
-    const solutionTitle = document.getElementById('solutionTitle');
     const streamingStatusBadge = document.getElementById('streamingStatusBadge');
     const streamingStatusText = document.getElementById('streamingStatusText');
-    const btnCopyText = document.getElementById('btnCopyText');
-    const copyBtnText = document.getElementById('copyBtnText');
-    const copyIcon = document.getElementById('copyIcon');
-    const btnDownloadTxt = document.getElementById('btnDownloadTxt');
-    const btnSpeak = document.getElementById('btnSpeak');
-    const btnReOcr = document.getElementById('btnReOcr');
+    const chatMessagesContainer = document.getElementById('chatMessagesContainer');
+    const inputFollowUpChat = document.getElementById('inputFollowUpChat');
+    const btnSendFollowUp = document.getElementById('btnSendFollowUp');
 
     const toast = document.getElementById('toast');
     const toastMsg = document.getElementById('toastMsg');
@@ -345,17 +401,15 @@
       if (mode === 'solve') {
         tabModeSolve.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 transition bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/25';
         tabModeOcr.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 transition bg-slate-800 text-slate-400 hover:text-white';
-        btnCaptureText.textContent = 'Chụp & Giải Siêu Tốc (1-2s)';
-        btnCaptureIcon.className = 'ph-bold ph-lightning text-2xl text-amber-300 animate-pulse';
-        guideTag.textContent = 'Camera To Toàn Khung (100% diện tích)';
-        copyBtnText.textContent = 'Sao Chép Lời Giải';
+        btnSubmitSolveText.textContent = 'Gửi & Giải Ngay (1-2s)';
+        btnCaptureText.textContent = attachedImages.length === 0 ? 'Chụp & Giải Ngay' : 'Chụp Thêm Ảnh';
+        guideTag.textContent = 'Camera Toàn Khung (Giải bài tập)';
       } else {
         tabModeOcr.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 transition bg-blue-600 text-white shadow-lg shadow-blue-500/25';
         tabModeSolve.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 transition bg-slate-800 text-slate-400 hover:text-white';
-        btnCaptureText.textContent = 'Chụp & Chép Chữ (1-2s)';
-        btnCaptureIcon.className = 'ph-bold ph-text-aa text-2xl text-white';
-        guideTag.textContent = 'Camera To Toàn Khung (100% diện tích)';
-        copyBtnText.textContent = 'Sao Chép Văn Bản';
+        btnSubmitSolveText.textContent = 'Gửi & Chép Chữ (OCR)';
+        btnCaptureText.textContent = attachedImages.length === 0 ? 'Chụp & Chép Chữ' : 'Chụp Thêm Ảnh';
+        guideTag.textContent = 'Camera Toàn Khung (Chép chữ)';
       }
     }
 
@@ -403,7 +457,7 @@
       setTimeout(() => toast.classList.add('hidden'), 2500);
     }
 
-    // Camera HD Khổ Lớn
+    // Camera HD
     async function startCamera(facingMode = 'environment') {
       stopCamera();
       currentFacingMode = facingMode;
@@ -472,8 +526,188 @@
       });
     }
 
-    // ⚡ STREAMING REAL-TIME CÓ TIMEOUT 6 GIÂY (KHÔNG BAO GIỜ TREO)
-    async function streamGeminiAI(blob, mode = 'solve') {
+    // ================= QUẢN LÝ NHIỀU ẢNH (MULTI-IMAGES) =================
+    async function addImageToQueue(blob) {
+      const base64 = await blobToBase64(blob);
+      const dataUrl = URL.createObjectURL(blob);
+      attachedImages.push({ blob, base64, dataUrl });
+      renderImageThumbnails();
+      showToast(`Đã thêm ảnh thứ ${attachedImages.length}!`);
+    }
+
+    function removeImageFromQueue(index) {
+      if (attachedImages[index]) {
+        URL.revokeObjectURL(attachedImages[index].dataUrl);
+        attachedImages.splice(index, 1);
+        renderImageThumbnails();
+      }
+    }
+
+    function clearAllAttachedImages() {
+      attachedImages.forEach(img => URL.revokeObjectURL(img.dataUrl));
+      attachedImages = [];
+      renderImageThumbnails();
+    }
+
+    btnClearAllImages.addEventListener('click', clearAllAttachedImages);
+
+    function renderImageThumbnails() {
+      const count = attachedImages.length;
+      trayCount.textContent = count;
+
+      if (count > 0) {
+        imagesTray.classList.remove('hidden');
+        actionButtonsDefault.classList.add('hidden');
+        actionButtonsWithImages.classList.remove('hidden');
+        imageCounterBadge.classList.remove('hidden');
+        imageCounterBadge.textContent = `${count} ảnh`;
+        btnSubmitSolveText.textContent = `Gửi & Giải (${count} ảnh)`;
+      } else {
+        imagesTray.classList.add('hidden');
+        actionButtonsDefault.classList.remove('hidden');
+        actionButtonsWithImages.classList.add('hidden');
+        imageCounterBadge.classList.add('hidden');
+        btnCaptureText.textContent = appMode === 'solve' ? 'Chụp & Giải Ngay' : 'Chụp & Chép Chữ';
+      }
+
+      thumbnailsContainer.innerHTML = '';
+      attachedImages.forEach((item, idx) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'relative flex-shrink-0 group';
+        wrap.innerHTML = `
+          <img src="${item.dataUrl}" alt="Ảnh ${idx + 1}" class="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl border border-slate-700 cursor-pointer shadow hover:opacity-90 transition" />
+          <span class="absolute bottom-1 left-1 bg-black/80 text-[10px] text-white px-1.5 py-0.5 rounded font-bold">${idx + 1}</span>
+          <button title="Xóa ảnh này" class="btn-remove-thumb absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs shadow hover:bg-rose-500 transition">
+            <i class="ph-bold ph-x"></i>
+          </button>
+        `;
+
+        wrap.querySelector('img').addEventListener('click', () => {
+          modalImg.src = item.dataUrl;
+          imageModal.classList.remove('hidden');
+        });
+
+        wrap.querySelector('.btn-remove-thumb').addEventListener('click', (e) => {
+          e.stopPropagation();
+          removeImageFromQueue(idx);
+        });
+
+        thumbnailsContainer.appendChild(wrap);
+      });
+    }
+
+    // Chụp từ video camera
+    function captureCurrentVideoFrame() {
+      if (!videoStream || video.videoWidth === 0) {
+        showToast('Camera chưa sẵn sàng!', true);
+        return null;
+      }
+      const canvas = document.getElementById('processCanvas');
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+      const MAX_DIM = 1000;
+      let w = vw, h = vh;
+      if (w > MAX_DIM || h > MAX_DIM) {
+        if (w > h) { h = Math.round((h * MAX_DIM) / w); w = MAX_DIM; }
+        else { w = Math.round((w * MAX_DIM) / h); h = MAX_DIM; }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, w, h);
+
+      return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.82));
+    }
+
+    btnCaptureAdd.addEventListener('click', async () => {
+      const blob = await captureCurrentVideoFrame();
+      if (!blob) return;
+
+      // Nếu đang chưa có ảnh nào và bấm nút này, lập tức thêm ảnh và có thể giải luôn hoặc chờ
+      await addImageToQueue(blob);
+      // Nếu ở chế độ mặc định, tự động kích hoạt giải ngay để tiện cho người muốn chụp 1 phát ăn ngay!
+      startInitialAIAnalysis();
+    });
+
+    btnCaptureMore.addEventListener('click', async () => {
+      const blob = await captureCurrentVideoFrame();
+      if (blob) await addImageToQueue(blob);
+    });
+
+    btnSubmitSolve.addEventListener('click', () => {
+      if (attachedImages.length === 0) {
+        showToast('Chưa có ảnh nào được chọn!', true);
+        return;
+      }
+      startInitialAIAnalysis();
+    });
+
+    fileInput.addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files);
+      for (const file of files) {
+        await processAndAddFile(file);
+      }
+      e.target.value = '';
+    });
+
+    btnPaste.addEventListener('click', async () => {
+      try {
+        const items = await navigator.clipboard.read();
+        for (const item of items) {
+          const imageType = item.types.find(t => t.startsWith('image/'));
+          if (imageType) {
+            const blob = await item.getType(imageType);
+            await processAndAddFile(blob);
+            return;
+          }
+        }
+        showToast('Không có ảnh trong bộ nhớ tạm!', true);
+      } catch (err) {
+        showToast('Hãy nhấn tổ hợp Ctrl + V để dán!');
+      }
+    });
+
+    window.addEventListener('paste', async (e) => {
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      for (const item of items) {
+        if (item.type.indexOf('image') !== -1) {
+          await processAndAddFile(item.getAsFile());
+          break;
+        }
+      }
+    });
+
+    function processAndAddFile(blob) {
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.getElementById('processCanvas');
+          let w = img.width, h = img.height;
+          const MAX_DIM = 1000;
+          if (w > MAX_DIM || h > MAX_DIM) {
+            if (w > h) { h = Math.round((h * MAX_DIM) / w); w = MAX_DIM; }
+            else { w = Math.round((w * MAX_DIM) / h); h = MAX_DIM; }
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          canvas.toBlob(async (b) => {
+            await addImageToQueue(b);
+            resolve();
+          }, 'image/jpeg', 0.82);
+        };
+        img.src = URL.createObjectURL(blob);
+      });
+    }
+
+    // ================= PHÒNG CHAT & GIẢI BÀI TẬP (FOLLOW-UP CHAT) =================
+    async function startInitialAIAnalysis() {
+      if (attachedImages.length === 0) {
+        showToast('Vui lòng chụp hoặc tải ít nhất 1 ảnh!', true);
+        return;
+      }
+
       const apiKey = getStoredApiKey();
       if (!apiKey) {
         apiKeyModal.classList.remove('hidden');
@@ -481,62 +715,137 @@
         return;
       }
 
+      // Đổi sang màn hình chat
       captureScreen.classList.add('hidden');
       resultScreen.classList.remove('hidden');
+      chatMessagesContainer.innerHTML = '';
 
-      solutionTitle.textContent = mode === 'solve' ? 'Gia sư AI đang viết lời giải...' : 'AI đang bóc tách chữ...';
-      solutionRendered.className = 'flex-1 p-5 overflow-y-auto text-slate-100 text-sm sm:text-base leading-relaxed prose-ai typing-cursor';
-      solutionRendered.innerHTML = '<p class="text-purple-300 italic animate-pulse">⚡ Đang kết nối Mắt thần Gemini 3.5...</p>';
-      streamingStatusBadge.className = 'text-xs text-amber-300 font-semibold flex items-center space-x-1.5 bg-purple-950/80 border border-purple-800/60 px-3 py-1.5 rounded-full';
-      streamingStatusText.textContent = 'Đang giải...';
+      const userNote = inputPromptDescription.value.trim();
 
-      const base64Data = await blobToBase64(blob);
+      // Hiển thị tin nhắn người dùng đầu tiên (ảnh + ghi chú)
+      const userMessageDiv = document.createElement('div');
+      userMessageDiv.className = 'flex flex-col space-y-2 max-w-[90%] self-end ml-auto bg-purple-900/40 border border-purple-700/60 p-3.5 rounded-2xl rounded-tr-sm shadow-md';
+      
+      let thumbsHtml = '<div class="flex items-center space-x-2 overflow-x-auto pb-1">';
+      attachedImages.forEach((img, i) => {
+        thumbsHtml += `<img src="${img.dataUrl}" class="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg border border-purple-400/50 cursor-pointer shadow hover:opacity-85" title="Xem ảnh ${i+1}" onclick="viewModalImage('${img.dataUrl}')" />`;
+      });
+      thumbsHtml += '</div>';
 
-      let prompt = '';
-      if (mode === 'solve') {
-        prompt = `Bạn là gia sư AI xuất sắc. Hãy quan sát bức ảnh và giải thật chính xác, ngắn gọn, súc tích:
+      userMessageDiv.innerHTML = `
+        <div class="flex items-center space-x-1.5 text-xs text-purple-300 font-semibold mb-1">
+          <i class="ph-bold ph-user"></i>
+          <span>Bạn đã gửi ${attachedImages.length} ảnh ${userNote ? 'kèm yêu cầu' : ''}:</span>
+        </div>
+        ${thumbsHtml}
+        ${userNote ? `<p class="text-xs sm:text-sm text-white bg-purple-950/70 p-2.5 rounded-xl border border-purple-800/60 mt-1">📝 <strong>Yêu cầu:</strong> ${escapeHtml(userNote)}</p>` : ''}
+      `;
+      chatMessagesContainer.appendChild(userMessageDiv);
+
+      // Chuẩn bị payload mở đầu
+      let basePrompt = '';
+      if (appMode === 'solve') {
+        basePrompt = `Bạn là một gia sư AI xuất sắc. Dưới đây là ${attachedImages.length} bức ảnh đề bài mà học sinh đã chụp.
+Hãy quan sát toàn bộ các hình ảnh và giải thật chính xác, ngắn gọn, dễ hiểu:
 ### 1. 🎯 ĐÁP ÁN:
-(Nếu trắc nghiệm: Ghi rõ Chọn A, B, C hoặc D. Nếu tự luận: Ghi kết quả ngắn gọn).
+(Nếu trắc nghiệm: Chọn rõ đáp án A, B, C hoặc D. Nếu tự luận: Ghi kết quả cụ thể).
 
 ### 2. 💡 LỜI GIẢI CHI TIẾT:
-(Trình bày logic từng bước, ghi rõ công thức ngắn gọn, dễ hiểu).
+(Trình bày logic từng bước, ghi rõ công thức và giải thích ngắn gọn).
 
 ### 3. 📌 GHI NHỚ:
 (1 câu cốt lõi để làm nhanh dạng bài này).
 In đậm kết quả chính.`;
       } else {
-        prompt = `Trích xuất chính xác 100% toàn bộ chữ tiếng Việt có dấu và số trong ảnh này. Giữ nguyên định dạng xuống dòng. Chỉ trả về nội dung chữ, không thêm lời chào.`;
+        basePrompt = `Trích xuất chính xác 100% toàn bộ chữ tiếng Việt có dấu và số trong tất cả các ảnh này. Giữ nguyên định dạng xuống dòng của từng ảnh. Chỉ trả về nội dung chữ, không chào hỏi.`;
       }
 
-      const payload = {
-        contents: [
-          {
-            parts: [
-              { text: prompt },
-              {
-                inline_data: {
-                  mime_type: "image/jpeg",
-                  data: base64Data
-                }
-              }
-            ]
+      if (userNote) {
+        basePrompt += `\n\n⚠️ ĐẶC BIỆT LƯU Ý YÊU CẦU CỦA HỌC SINH: "${userNote}" (Hãy ưu tiên làm đúng theo yêu cầu này).`;
+      }
+
+      // Tạo user turn
+      const userParts = [{ text: basePrompt }];
+      attachedImages.forEach(img => {
+        userParts.push({
+          inline_data: {
+            mime_type: 'image/jpeg',
+            data: img.base64
           }
-        ],
+        });
+      });
+
+      conversationHistory = [
+        {
+          role: 'user',
+          parts: userParts
+        }
+      ];
+
+      // Bắt đầu gọi AI và stream kết quả
+      await executeAIStreamResponse();
+    }
+
+    // Hàm gọi AI và Streaming câu trả lời (Hỗ trợ cả lượt đầu và lượt hỏi lại)
+    async function executeAIStreamResponse() {
+      if (isGenerating) return;
+      isGenerating = true;
+      btnSendFollowUp.disabled = true;
+      btnSendFollowUp.classList.add('opacity-50');
+
+      streamingStatusBadge.className = 'text-xs text-amber-300 font-semibold flex items-center space-x-1.5 bg-purple-950/80 border border-purple-800/60 px-3 py-1 rounded-full';
+      streamingStatusText.textContent = 'AI đang suy nghĩ...';
+
+      // Tạo bóng tin nhắn AI trong giao diện
+      const aiMessageDiv = document.createElement('div');
+      aiMessageDiv.className = 'flex flex-col space-y-2 max-w-[95%] sm:max-w-[90%] self-start bg-slate-800/90 border border-slate-700/80 p-4 rounded-2xl rounded-tl-sm shadow-md text-slate-100';
+      aiMessageDiv.innerHTML = `
+        <div class="flex items-center justify-between border-b border-slate-700/80 pb-2 mb-1">
+          <span class="text-xs font-bold text-amber-300 flex items-center space-x-1.5">
+            <i class="ph-bold ph-sparkle animate-spin"></i>
+            <span class="ai-role-title">Gia sư AI đang viết lời giải...</span>
+          </span>
+          <div class="flex items-center space-x-1">
+            <button class="btn-copy-msg px-2 py-0.5 rounded text-[11px] bg-slate-700 hover:bg-slate-600 text-slate-200 transition flex items-center space-x-1">
+              <i class="ph-bold ph-copy"></i>
+              <span>Chép</span>
+            </button>
+            <button class="btn-speak-msg px-2 py-0.5 rounded text-[11px] bg-slate-700 hover:bg-slate-600 text-slate-200 transition flex items-center space-x-1">
+              <i class="ph-bold ph-speaker-high"></i>
+              <span>Đọc</span>
+            </button>
+          </div>
+        </div>
+        <div class="ai-content-body text-xs sm:text-sm prose-ai typing-cursor leading-relaxed">
+          <p class="text-purple-300 italic animate-pulse">⚡ Đang kết nối Mắt thần Gemini 3.5...</p>
+        </div>
+      `;
+      chatMessagesContainer.appendChild(aiMessageDiv);
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+
+      const aiContentBody = aiMessageDiv.querySelector('.ai-content-body');
+      const aiRoleTitle = aiMessageDiv.querySelector('.ai-role-title');
+      const btnCopyMsg = aiMessageDiv.querySelector('.btn-copy-msg');
+      const btnSpeakMsg = aiMessageDiv.querySelector('.btn-speak-msg');
+
+      const apiKey = getStoredApiKey();
+      const payload = {
+        contents: conversationHistory,
         generationConfig: {
           temperature: 0.2,
           maxOutputTokens: 2048
         }
       };
 
+      let fullAnswerText = '';
       let lastError = null;
 
-      // DUYỆT QUA CÁC MODEL NHANH NHẤT (MỖI MODEL CHỜ TỐI ĐA 6s, NẾU QUÁ 6s TỰ ĐỘNG ĐỔI)
+      // Duyệt qua các model nhanh nhất với timeout 6s
       for (const model of FAST_MODELS) {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
 
         try {
-          activeModelLabel.textContent = `Model: ${model} (Đang kết nối...)`;
           const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}&alt=sse`;
 
           const response = await fetch(endpoint, {
@@ -550,18 +859,15 @@ In đậm kết quả chính.`;
 
           if (!response.ok) {
             const errData = await response.json().catch(() => ({}));
-            const errMsg = errData.error?.message || `HTTP ${response.status}`;
-            console.warn(`Model ${model} từ chối:`, errMsg);
-            lastError = errMsg;
+            lastError = errData.error?.message || `HTTP ${response.status}`;
             continue;
           }
 
           const reader = response.body.getReader();
           const decoder = new TextDecoder('utf-8');
           let buffer = '';
-          currentStreamedText = '';
-          activeModelLabel.textContent = `Model: ${model} ⚡ (Cực nhanh)`;
-          streamingStatusText.textContent = 'AI đang viết bài giải...';
+          fullAnswerText = '';
+          streamingStatusText.textContent = 'AI đang viết câu trả lời...';
 
           while (true) {
             const { done, value } = await reader.read();
@@ -579,13 +885,9 @@ In đậm kết quả chính.`;
                     const data = JSON.parse(jsonStr);
                     const chunk = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
                     if (chunk) {
-                      currentStreamedText += chunk;
-                      if (typeof marked !== 'undefined') {
-                        solutionRendered.innerHTML = marked.parse(currentStreamedText);
-                      } else {
-                        solutionRendered.textContent = currentStreamedText;
-                      }
-                      solutionRendered.scrollTop = solutionRendered.scrollHeight;
+                      fullAnswerText += chunk;
+                      aiContentBody.innerHTML = typeof marked !== 'undefined' ? marked.parse(fullAnswerText) : fullAnswerText;
+                      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
                     }
                   } catch (e) {}
                 }
@@ -593,138 +895,104 @@ In đậm kết quả chính.`;
             }
           }
 
-          if (currentStreamedText.trim().length > 0) {
-            solutionRendered.className = 'flex-1 p-5 overflow-y-auto text-slate-100 text-sm sm:text-base leading-relaxed prose-ai';
-            solutionTitle.textContent = mode === 'solve' ? 'Lời giải chi tiết hoàn tất ✓' : 'Văn bản đã bóc tách ✓';
-            streamingStatusBadge.className = 'text-xs text-emerald-300 font-semibold flex items-center space-x-1.5 bg-emerald-950/80 border border-emerald-800/60 px-3 py-1.5 rounded-full';
-            streamingStatusText.textContent = 'Đã hoàn thành!';
-            showToast('Đã có kết quả!');
-            return;
+          if (fullAnswerText.trim().length > 0) {
+            break;
           }
 
         } catch (err) {
           clearTimeout(timeoutId);
-          console.warn(`Lỗi khi gọi model ${model}:`, err.name === 'AbortError' ? 'Quá thời gian chờ (Timeout)' : err.message);
           lastError = err.name === 'AbortError' ? 'Quá thời gian kết nối' : err.message;
         }
       }
 
-      // NẾU STREAM BỊ LỖI, THỬ LẠI 1 LẦN BẰNG PHƯƠNG THỨC TRUYỀN THỐNG (generateContent)
-      try {
-        activeModelLabel.textContent = `Model: gemini-3.5-flash-lite (Dự phòng)`;
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+      // Xử lý khi hoàn tất hoặc lỗi
+      aiContentBody.classList.remove('typing-cursor');
+
+      if (fullAnswerText.trim().length > 0) {
+        aiRoleTitle.textContent = 'Gia sư AI ✓';
+        streamingStatusBadge.className = 'text-xs text-emerald-300 font-semibold flex items-center space-x-1.5 bg-emerald-950/80 border border-emerald-800/60 px-3 py-1 rounded-full';
+        streamingStatusText.textContent = 'Sẵn sàng hỏi thêm!';
+
+        // Lưu câu trả lời của AI vào lịch sử hội thoại để người dùng chat tiếp
+        conversationHistory.push({
+          role: 'model',
+          parts: [{ text: fullAnswerText }]
         });
-        if (res.ok) {
-          const json = await res.json();
-          const txt = json.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          if (txt) {
-            currentStreamedText = txt;
-            solutionRendered.className = 'flex-1 p-5 overflow-y-auto text-slate-100 text-sm sm:text-base leading-relaxed prose-ai';
-            solutionRendered.innerHTML = typeof marked !== 'undefined' ? marked.parse(txt) : txt;
-            solutionTitle.textContent = mode === 'solve' ? 'Lời giải chi tiết hoàn tất ✓' : 'Văn bản đã bóc tách ✓';
-            streamingStatusBadge.className = 'text-xs text-emerald-300 font-semibold flex items-center space-x-1.5 bg-emerald-950/80 border border-emerald-800/60 px-3 py-1.5 rounded-full';
-            streamingStatusText.textContent = 'Đã hoàn thành!';
-            showToast('Đã có kết quả!');
-            return;
+
+        // Gán sự kiện cho nút chép và đọc
+        btnCopyMsg.addEventListener('click', async () => {
+          await navigator.clipboard.writeText(fullAnswerText);
+          showToast('Đã sao chép nội dung!');
+        });
+
+        btnSpeakMsg.addEventListener('click', () => {
+          if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(fullAnswerText);
+            u.lang = 'vi-VN';
+            window.speechSynthesis.speak(u);
+            showToast('Đang phát giọng đọc...');
           }
-        }
-      } catch (e) {}
+        });
 
-      solutionRendered.className = 'flex-1 p-5 overflow-y-auto text-rose-300 text-sm';
-      solutionRendered.innerHTML = `<p class="font-bold">❌ Server AI báo lỗi:</p><p class="mt-1">${lastError || 'Không nhận được phản hồi'}</p><p class="mt-2 text-xs text-slate-400">Bạn vui lòng bấm "Giải lại bài này" sau vài giây nhé!</p>`;
-      streamingStatusBadge.className = 'text-xs text-rose-300 font-semibold flex items-center space-x-1.5 bg-rose-950/80 border border-rose-800/60 px-3 py-1.5 rounded-full';
-      streamingStatusText.textContent = 'Gặp lỗi!';
+      } else {
+        aiContentBody.innerHTML = `<p class="text-rose-400 font-semibold">❌ Không thể nhận phản hồi: ${lastError || 'Lỗi mạng'}</p><p class="text-xs text-slate-400 mt-1">Vui lòng thử gửi lại câu hỏi nhé!</p>`;
+        streamingStatusBadge.className = 'text-xs text-rose-300 font-semibold flex items-center space-x-1.5 bg-rose-950/80 border border-rose-800/60 px-3 py-1 rounded-full';
+        streamingStatusText.textContent = 'Gặp lỗi!';
+      }
+
+      isGenerating = false;
+      btnSendFollowUp.disabled = false;
+      btnSendFollowUp.classList.remove('opacity-50');
+      inputFollowUpChat.focus();
     }
 
-    function processImage(blob) {
-      currentProcessedBlob = blob;
-      if (currentImageObjectUrl) URL.revokeObjectURL(currentImageObjectUrl);
-      currentImageObjectUrl = URL.createObjectURL(blob);
-      resultImagePreview.src = currentImageObjectUrl;
-      modalImg.src = currentImageObjectUrl;
+    // Gửi câu hỏi chat hỏi lại
+    async function sendFollowUpQuestion(questionText) {
+      const text = questionText || inputFollowUpChat.value.trim();
+      if (!text || isGenerating) return;
 
-      streamGeminiAI(blob, appMode);
+      inputFollowUpChat.value = '';
+
+      // Hiển thị tin nhắn người dùng hỏi lại
+      const userMsgDiv = document.createElement('div');
+      userMsgDiv.className = 'flex flex-col space-y-1 max-w-[85%] self-end ml-auto bg-purple-600 text-white p-3 rounded-2xl rounded-tr-sm shadow-md';
+      userMsgDiv.innerHTML = `
+        <div class="flex items-center space-x-1.5 text-[11px] text-purple-200 font-semibold">
+          <i class="ph-bold ph-user"></i>
+          <span>Bạn:</span>
+        </div>
+        <p class="text-xs sm:text-sm leading-relaxed">${escapeHtml(text)}</p>
+      `;
+      chatMessagesContainer.appendChild(userMsgDiv);
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+
+      // Thêm câu hỏi vào lịch sử hội thoại
+      conversationHistory.push({
+        role: 'user',
+        parts: [{ text: text }]
+      });
+
+      // Kích hoạt AI trả lời tiếp theo
+      await executeAIStreamResponse();
     }
 
-    // Nén ảnh về 1000px siêu nhẹ (~80KB gửi đi trong 0.05s)
-    btnCapture.addEventListener('click', () => {
-      if (!videoStream || video.videoWidth === 0) {
-        showToast('Camera chưa sẵn sàng!', true);
-        return;
-      }
-      const canvas = document.getElementById('processCanvas');
-      const vw = video.videoWidth;
-      const vh = video.videoHeight;
+    btnSendFollowUp.addEventListener('click', () => sendFollowUpQuestion());
 
-      const MAX_DIM = 1000;
-      let w = vw, h = vh;
-      if (w > MAX_DIM || h > MAX_DIM) {
-        if (w > h) { h = Math.round((h * MAX_DIM) / w); w = MAX_DIM; }
-        else { w = Math.round((w * MAX_DIM) / h); h = MAX_DIM; }
-      }
-
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, w, h);
-
-      canvas.toBlob(blob => processImage(blob), 'image/jpeg', 0.82);
-    });
-
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) resizeAndProcessFile(file);
-      e.target.value = '';
-    });
-
-    btnPaste.addEventListener('click', async () => {
-      try {
-        const items = await navigator.clipboard.read();
-        for (const item of items) {
-          const imageType = item.types.find(t => t.startsWith('image/'));
-          if (imageType) {
-            const blob = await item.getType(imageType);
-            resizeAndProcessFile(blob);
-            return;
-          }
-        }
-        showToast('Không có ảnh trong bộ nhớ tạm!', true);
-      } catch (err) {
-        showToast('Hãy nhấn tổ hợp Ctrl + V để dán!');
+    inputFollowUpChat.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendFollowUpQuestion();
       }
     });
 
-    window.addEventListener('paste', (e) => {
-      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-      for (const item of items) {
-        if (item.type.indexOf('image') !== -1) {
-          resizeAndProcessFile(item.getAsFile());
-          break;
-        }
-      }
+    // Các chip gợi ý câu hỏi nhanh
+    document.querySelectorAll('.quick-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const text = chip.textContent.trim().replace(/^[💡🔄✏️]\s*/, '');
+        sendFollowUpQuestion(text);
+      });
     });
-
-    function resizeAndProcessFile(blob) {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.getElementById('processCanvas');
-        let w = img.width, h = img.height;
-        const MAX_DIM = 1000;
-        if (w > MAX_DIM || h > MAX_DIM) {
-          if (w > h) { h = Math.round((h * MAX_DIM) / w); w = MAX_DIM; }
-          else { w = Math.round((w * MAX_DIM) / h); h = MAX_DIM; }
-        }
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
-        canvas.toBlob(b => processImage(b), 'image/jpeg', 0.82);
-      };
-      img.src = URL.createObjectURL(blob);
-    }
 
     btnBackToCapture.addEventListener('click', () => {
       resultScreen.classList.add('hidden');
@@ -732,45 +1000,15 @@ In đậm kết quả chính.`;
       if (!videoStream) startCamera(currentFacingMode);
     });
 
-    btnReOcr.addEventListener('click', () => {
-      if (currentProcessedBlob) processImage(currentProcessedBlob);
-    });
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
 
-    btnCopyText.addEventListener('click', async () => {
-      if (!currentStreamedText) return;
-      try {
-        await navigator.clipboard.writeText(currentStreamedText);
-        copyBtnText.textContent = 'Đã sao chép!';
-        showToast('Đã sao chép toàn bộ lời giải!');
-        setTimeout(() => copyBtnText.textContent = appMode === 'solve' ? 'Sao Chép Lời Giải' : 'Sao Chép Văn Bản', 2000);
-      } catch (e) {
-        showToast('Đã chép vào bộ nhớ tạm!');
-      }
-    });
+    window.viewModalImage = function(url) {
+      modalImg.src = url;
+      imageModal.classList.remove('hidden');
+    };
 
-    btnDownloadTxt.addEventListener('click', () => {
-      if (!currentStreamedText) return;
-      const blob = new Blob([currentStreamedText], { type: 'text/plain;charset=utf-8' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `loi_giai_ai_${Date.now().toString().slice(-4)}.txt`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-      showToast('Đã tải file lời giải!');
-    });
-
-    btnSpeak.addEventListener('click', () => {
-      if (!currentStreamedText) return;
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(currentStreamedText);
-        u.lang = 'vi-VN';
-        window.speechSynthesis.speak(u);
-        showToast('Đang phát âm thanh đọc...');
-      }
-    });
-
-    resultImagePreview.addEventListener('click', () => imageModal.classList.remove('hidden'));
     btnCloseModal.addEventListener('click', () => imageModal.classList.add('hidden'));
     imageModal.addEventListener('click', (e) => { if (e.target === imageModal) imageModal.classList.add('hidden'); });
 

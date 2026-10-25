@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>SnapText AI - Giải Bài Tập Siêu Tốc (Gemini 3.8 Flash)</title>
+  <title>SnapText AI - Quét Chữ & Giải Bài Tập Siêu Tốc (Camera Khổ Lớn)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Marked.js để hiển thị lời giải bài tập đẹp mắt -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -29,11 +29,11 @@
       color: #000000 !important;
       box-shadow: 0 0 15px rgba(245, 158, 11, 0.6);
     }
-    /* Style lời giải Markdown */
+    /* Style cho lời giải bài tập markdown */
     .prose-ai h1, .prose-ai h2, .prose-ai h3 {
       color: #38bdf8;
       font-weight: 700;
-      margin-top: 0.8rem;
+      margin-top: 1rem;
       margin-bottom: 0.4rem;
     }
     .prose-ai strong {
@@ -45,7 +45,7 @@
       margin-bottom: 0.5rem;
     }
     .prose-ai li {
-      margin-bottom: 0.2rem;
+      margin-bottom: 0.25rem;
     }
     .prose-ai p {
       margin-bottom: 0.5rem;
@@ -64,22 +64,22 @@
 
   <!-- Thanh tiêu đề -->
   <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40 px-4 py-3">
-    <div class="max-w-2xl mx-auto flex items-center justify-between">
+    <div class="max-w-3xl mx-auto flex items-center justify-between">
       <div class="flex items-center space-x-2.5">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-500/25">
-          <i class="ph-bold ph-lightning text-2xl text-amber-300"></i>
+          <i class="ph-bold ph-graduation-cap text-2xl text-amber-300"></i>
         </div>
         <div>
           <div class="flex items-center space-x-1.5">
             <h1 class="font-bold text-base sm:text-lg leading-tight text-white">SnapText AI</h1>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-purple-500 to-indigo-500 text-white uppercase tracking-wider">3.8 Siêu Tốc</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-purple-500 to-indigo-500 text-white uppercase tracking-wider">Camera Max</span>
           </div>
-          <p class="text-xs text-slate-400">Giải bài tập & Lấy chữ trong 2 giây</p>
+          <p class="text-xs text-slate-400">Camera khổ rộng • Giải bài tập trong 2 giây</p>
         </div>
       </div>
 
       <!-- Nút Cài đặt AI Key -->
-      <button id="btnOpenApiKeyModal" class="flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-full border border-slate-700 text-xs transition active:scale-95 text-slate-200">
+      <button id="btnOpenApiKeyModal" class="flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-700 px-3.5 py-1.5 rounded-full border border-slate-700 text-xs transition active:scale-95 text-slate-200">
         <i class="ph-bold ph-key text-amber-400"></i>
         <span id="apiKeyStatusText">Cài đặt AI</span>
       </button>
@@ -89,8 +89,8 @@
   <!-- Màn trợ sáng màn hình cho máy tính -->
   <div id="screenTorchOverlay" class="fixed inset-0 bg-white pointer-events-none z-30 opacity-0 transition-opacity duration-300"></div>
 
-  <!-- Vùng nội dung chính -->
-  <main class="flex-1 max-w-2xl w-full mx-auto p-4 flex flex-col">
+  <!-- Vùng nội dung chính (Đã mở rộng max-w-3xl rộng rãi) -->
+  <main class="flex-1 max-w-3xl w-full mx-auto p-4 flex flex-col">
 
     <!-- ================= GIAO DIỆN 1: CHỤP ẢNH / TẢI ẢNH ================= -->
     <section id="captureScreen" class="flex-1 flex flex-col space-y-3.5">
@@ -107,53 +107,57 @@
         </button>
       </div>
 
-      <!-- Khung hiển thị Camera To Rộng -->
-      <div id="cameraContainer" class="relative w-full aspect-[4/3] sm:aspect-[16/10] max-h-[520px] bg-black rounded-2xl overflow-hidden border border-slate-800 shadow-2xl flex items-center justify-center">
+      <!-- Khung Camera SIÊU TO KHỔNG LỒ (Cao từ 520px - 620px bao trọn trang sách A4) -->
+      <div id="cameraContainer" class="relative w-full h-[520px] sm:h-[620px] bg-black rounded-3xl overflow-hidden border-2 border-slate-800 shadow-2xl flex items-center justify-center group transition-all duration-300">
         <video id="cameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
         
         <!-- Placeholder khi camera tắt -->
         <div id="cameraOffPlaceholder" class="hidden absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-950/95 z-20">
-          <i class="ph-duotone ph-camera-slash text-5xl text-slate-600 mb-2"></i>
-          <p class="text-sm font-medium text-slate-300">Camera chưa được bật hoặc chưa cấp quyền</p>
-          <button id="btnRetryCamera" class="mt-4 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-semibold text-white transition shadow-lg shadow-purple-500/20">
+          <i class="ph-duotone ph-camera-slash text-6xl text-slate-600 mb-3"></i>
+          <p class="text-base font-medium text-slate-200">Camera chưa được bật hoặc chưa cấp quyền</p>
+          <p class="text-xs text-slate-500 mt-1">Bấm cho phép quyền máy ảnh trên trình duyệt</p>
+          <button id="btnRetryCamera" class="mt-4 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-bold text-white transition shadow-lg shadow-purple-500/25">
             Bật lại Camera
           </button>
         </div>
 
-        <!-- Khung ngắm chụp toàn cảnh -->
-        <div id="cropGuideBox" class="pointer-events-none absolute inset-3 border-2 border-dashed border-amber-400/80 rounded-xl flex flex-col justify-between p-3 shadow-[0_0_0_9999px_rgba(0,0,0,0.25)]">
+        <!-- Khung ngắm chụp toàn cảnh (Bao trọn 100% diện tích camera) -->
+        <div id="cropGuideBox" class="pointer-events-none absolute inset-3 sm:inset-4 border-2 border-dashed border-amber-400/90 rounded-2xl flex flex-col justify-between p-3.5 shadow-[0_0_0_9999px_rgba(0,0,0,0.25)] transition-all duration-300">
           <div class="flex justify-between items-center">
-            <span class="text-[11px] text-amber-300 bg-black/75 px-2.5 py-1 rounded-lg backdrop-blur border border-amber-500/30 flex items-center space-x-1">
-              <i class="ph-bold ph-scan"></i>
-              <span id="guideTag">Toàn cảnh đề bài</span>
+            <span class="text-xs text-amber-300 bg-black/80 px-3 py-1 rounded-lg backdrop-blur border border-amber-500/40 flex items-center space-x-1.5 font-semibold">
+              <i class="ph-bold ph-arrows-out"></i>
+              <span id="guideTag">Camera To Toàn Cảnh (Trọn Trang Sách)</span>
             </span>
-            <span class="text-[10px] text-emerald-400 bg-black/60 px-2 py-0.5 rounded">Tối ưu phản hồi trong 2s</span>
+            <span class="text-[11px] text-emerald-400 bg-black/70 px-2.5 py-1 rounded-md font-mono">100% Khung Hình</span>
           </div>
           <div class="text-center">
-            <span class="text-xs text-white bg-black/75 px-3.5 py-1.5 rounded-full backdrop-blur border border-white/20 shadow">
-              Chụp rõ đề bài để AI giải ngay
+            <span class="text-xs sm:text-sm text-white bg-black/80 px-4 py-2 rounded-full backdrop-blur border border-white/20 shadow-lg">
+              Đặt toàn bộ bài tập hoặc trang sách vào đây
             </span>
           </div>
           <div class="text-right">
-            <span class="text-[10px] text-slate-300 bg-black/60 px-2 py-0.5 rounded">Gemini 3.8 Flash</span>
+            <span class="text-[11px] text-slate-300 bg-black/70 px-2.5 py-1 rounded-md">Gemini 3.8 Flash • Siêu Tốc</span>
           </div>
         </div>
 
-        <!-- Nút Đèn Flash & Đổi Camera -->
-        <div class="absolute top-3 right-3 flex space-x-2 z-10">
-          <button id="btnTorch" title="Bật/Tắt Đèn Flash" class="w-11 h-11 rounded-full bg-black/70 backdrop-blur hover:bg-black/90 text-white flex items-center justify-center transition border border-white/20 active:scale-95 shadow-lg">
-            <i id="torchIcon" class="ph-bold ph-flashlight text-xl"></i>
+        <!-- Cụm nút công cụ nổi trên camera (ĐÈN FLASH + ĐỔI CAMERA + PHÓNG TO) -->
+        <div class="absolute top-4 right-4 flex space-x-2.5 z-10">
+          <!-- Nút Đèn Flash -->
+          <button id="btnTorch" title="Bật/Tắt Đèn Flash" class="w-12 h-12 rounded-full bg-black/75 backdrop-blur hover:bg-black text-white flex items-center justify-center transition border border-white/20 active:scale-95 shadow-xl">
+            <i id="torchIcon" class="ph-bold ph-flashlight text-2xl"></i>
           </button>
-          <button id="btnSwitchCamera" title="Đổi camera trước / sau" class="w-11 h-11 rounded-full bg-black/70 backdrop-blur hover:bg-black/90 text-white flex items-center justify-center transition border border-white/20 active:scale-95 shadow-lg">
-            <i class="ph-bold ph-arrows-clockwise text-xl"></i>
+
+          <!-- Nút Đổi Camera trước / sau -->
+          <button id="btnSwitchCamera" title="Đổi camera trước / sau" class="w-12 h-12 rounded-full bg-black/75 backdrop-blur hover:bg-black text-white flex items-center justify-center transition border border-white/20 active:scale-95 shadow-xl">
+            <i class="ph-bold ph-arrows-clockwise text-2xl"></i>
           </button>
         </div>
       </div>
 
       <!-- Các nút thao tác -->
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-2 gap-3 pt-1">
         <!-- Nút Chụp Ảnh Ngay -->
-        <button id="btnCapture" class="col-span-2 py-4 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:opacity-95 active:scale-[0.99] font-bold text-white shadow-xl shadow-purple-600/30 flex items-center justify-center space-x-2.5 transition text-base">
+        <button id="btnCapture" class="col-span-2 py-4 px-4 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:opacity-95 active:scale-[0.99] font-bold text-white shadow-xl shadow-purple-600/30 flex items-center justify-center space-x-2.5 transition text-base sm:text-lg">
           <i id="btnCaptureIcon" class="ph-bold ph-lightning text-2xl text-amber-300"></i>
           <span id="btnCaptureText">Chụp & Giải Siêu Tốc (2 Giây)</span>
         </button>
@@ -161,7 +165,7 @@
         <!-- Chọn ảnh từ máy -->
         <label class="cursor-pointer py-3.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] border border-slate-800 flex items-center justify-center space-x-2 text-slate-200 transition text-xs sm:text-sm font-medium">
           <i class="ph-bold ph-image text-xl text-blue-400"></i>
-          <span>Chọn ảnh từ máy</span>
+          <span>Chọn đề bài từ máy</span>
           <input type="file" id="fileInput" accept="image/*" class="hidden" />
         </label>
 
@@ -171,20 +175,25 @@
           <span>Dán đề bài (Ctrl+V)</span>
         </button>
       </div>
+
+      <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-xs text-slate-400 flex items-center space-x-2">
+        <i class="ph-fill ph-check-circle text-emerald-400 text-lg shrink-0"></i>
+        <span><b>Camera To Toàn Khung:</b> Không bị cắt viền mép, chụp trọn toàn bộ mặt giấy thi, sách giáo khoa hoặc màn hình máy tính!</span>
+      </div>
     </section>
 
     <!-- ================= GIAO DIỆN 2: KẾT QUẢ GIẢI BÀI TẬP ================= -->
     <section id="resultScreen" class="hidden flex-1 flex flex-col space-y-3.5">
       
-      <!-- Top Action Bar -->
+      <!-- Top Bar -->
       <div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-        <button id="btnBackToCapture" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition">
+        <button id="btnBackToCapture" class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition">
           <i class="ph-bold ph-arrow-left"></i>
           <span>Chụp câu khác</span>
         </button>
-        <span class="text-xs text-amber-300 font-semibold flex items-center space-x-1.5 bg-purple-950/70 border border-purple-800/60 px-3 py-1 rounded-full">
+        <span class="text-xs text-amber-300 font-semibold flex items-center space-x-1.5 bg-purple-950/80 border border-purple-800/60 px-3 py-1.5 rounded-full">
           <i class="ph-fill ph-check-circle text-emerald-400"></i>
-          <span>AI đã có kết quả!</span>
+          <span>AI đã giải xong bài tập!</span>
         </span>
       </div>
 
@@ -192,8 +201,8 @@
       <div class="bg-slate-900 rounded-xl border border-slate-800 p-2.5 flex items-center space-x-3">
         <img id="resultImagePreview" src="" alt="Đề bài" class="w-16 h-16 object-cover rounded-lg border border-slate-700 cursor-pointer shadow hover:opacity-85 transition" title="Bấm để xem ảnh lớn" />
         <div class="flex-1 min-w-0">
-          <p class="text-xs font-semibold text-white">Ảnh đề bài vừa gửi</p>
-          <p class="text-[11px] text-slate-400 truncate mt-0.5">Nhấp để phóng to ảnh</p>
+          <p class="text-xs font-semibold text-white">Ảnh đề bài vừa chụp</p>
+          <p class="text-[11px] text-slate-400 truncate mt-0.5">Bấm vào ảnh để soi lớn đề bài</p>
           <button id="btnReOcr" class="mt-1 text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center space-x-1">
             <i class="ph-bold ph-arrows-clockwise"></i>
             <span>Giải lại bài này</span>
@@ -201,12 +210,12 @@
         </div>
       </div>
 
-      <!-- Lời giải Render Markdown -->
-      <div class="flex-1 flex flex-col min-h-[360px] bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+      <!-- Khung Lời giải Render Markdown -->
+      <div class="flex-1 flex flex-col min-h-[400px] bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
         <div class="px-4 py-2.5 bg-slate-800/90 border-b border-slate-700/80 flex items-center justify-between">
           <span class="text-xs font-semibold text-slate-200 flex items-center space-x-1.5">
             <i class="ph-bold ph-sparkle text-amber-400"></i>
-            <span id="solutionTitle">Lời giải chi tiết từ AI</span>
+            <span id="solutionTitle">Lời giải chi tiết từ Gia sư AI</span>
           </span>
           <button id="btnSpeak" title="Đọc lời giải" class="px-2.5 py-1 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition text-xs flex items-center space-x-1">
             <i class="ph-bold ph-speaker-high"></i>
@@ -247,7 +256,7 @@
         </div>
         <div>
           <h3 class="font-bold text-white text-base">Cài đặt Gemini API Key</h3>
-          <p class="text-xs text-slate-400">Tự động dùng model Gemini 3.8 Flash siêu tốc</p>
+          <p class="text-xs text-slate-400">Tự động kích hoạt Gemini 3.8 Flash siêu tốc</p>
         </div>
       </div>
 
@@ -360,15 +369,15 @@
         tabModeOcr.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 transition bg-slate-800 text-slate-400 hover:text-white';
         btnCaptureText.textContent = 'Chụp & Giải Siêu Tốc (2 Giây)';
         btnCaptureIcon.className = 'ph-bold ph-lightning text-2xl text-amber-300';
-        guideTag.textContent = 'Toàn cảnh đề bài';
+        guideTag.textContent = 'Camera To Toàn Cảnh (Trọn Trang Sách)';
         copyBtnText.textContent = 'Sao Chép Lời Giải';
-        solutionTitle.textContent = 'Lời giải bài tập chi tiết từ AI';
+        solutionTitle.textContent = 'Lời giải chi tiết từ Gia sư AI';
       } else {
         tabModeOcr.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 transition bg-blue-600 text-white shadow-lg shadow-blue-500/25';
         tabModeSolve.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 transition bg-slate-800 text-slate-400 hover:text-white';
         btnCaptureText.textContent = 'Chụp & Chép Chữ (1 Giây)';
         btnCaptureIcon.className = 'ph-bold ph-text-aa text-2xl text-white';
-        guideTag.textContent = 'Toàn cảnh văn bản';
+        guideTag.textContent = 'Camera To Toàn Cảnh (Trọn Trang Sách)';
         copyBtnText.textContent = 'Sao Chép Văn Bản';
         solutionTitle.textContent = 'Nội dung văn bản trích xuất';
       }
@@ -418,7 +427,7 @@
       setTimeout(() => toast.classList.add('hidden'), 2500);
     }
 
-    // Camera HD
+    // Camera HD Khổ Lớn
     async function startCamera(facingMode = 'environment') {
       stopCamera();
       currentFacingMode = facingMode;
@@ -507,7 +516,7 @@
       if (mode === 'solve') {
         prompt = `Bạn là gia sư AI. Hãy giải nhanh và chính xác bài tập trong bức ảnh này:
 ### 1. 🎯 ĐÁP ÁN:
-(Nếu trắc nghiệm: Ghi rõ Chọn A, B, C hoặc D kèm phương án. Nếu tự luận: Ghi kết số cuối cùng).
+(Nếu trắc nghiệm: Ghi rõ Chọn A, B, C hoặc D kèm phương án. Nếu tự luận: Ghi kết quả số cuối cùng).
 
 ### 2. 💡 LỜI GIẢI CHI TIẾT:
 (Trình bày từng bước logic, công thức rõ ràng, dễ hiểu).
@@ -536,11 +545,10 @@ Trình bày khoa học, in đậm kết quả quan trọng.`;
         generationConfig: {
           temperature: 0.2,
           maxOutputTokens: 2048,
-          thinkingConfig: { thinkingBudget: 0 } // Tắt suy nghĩ rườm rà -> Phản hồi lập tức trong 1-2s
+          thinkingConfig: { thinkingBudget: 0 }
         }
       };
 
-      // Ưu tiên trực tiếp gemini-3.8-flash theo yêu cầu của Google
       const models = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash'];
       let lastError = null;
 
@@ -602,7 +610,7 @@ Trình bày khoa học, in đậm kết quả quan trọng.`;
       }
     }
 
-    // TỐI ƯU KÍCH THƯỚC ẢNH VỪA PHẢI ĐỂ UPLOAD TRONG 0.1 GIÂY
+    // CHỤP TOÀN KHUNG HÌNH (100% DIỆN TÍCH CAMERA)
     btnCapture.addEventListener('click', () => {
       if (!videoStream || video.videoWidth === 0) {
         showToast('Camera chưa sẵn sàng!', true);
@@ -612,7 +620,7 @@ Trình bày khoa học, in đậm kết quả quan trọng.`;
       const vw = video.videoWidth;
       const vh = video.videoHeight;
 
-      // Nén về kích thước 1200px chuẩn vàng (nhẹ 150KB -> gửi đi mất 0.1s)
+      // Giữ trọn 100% diện tích camera
       const MAX_DIM = 1200;
       let w = vw, h = vh;
       if (w > MAX_DIM || h > MAX_DIM) {

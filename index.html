@@ -538,7 +538,41 @@
       });
     }
 
-    // 3. GỌI GOOGLE GEMINI VISION AI ĐỂ BÓC TÁCH CHỮ CHUẨN 100%
+    // 3. TỰ ĐỘNG TÌM MODEL VÀ GỌI GEMINI AI CHUẨN XÁC
+    let activeGeminiModel = null;
+
+    async function findWorkingGeminiModel(apiKey) {
+      if (activeGeminiModel) return activeGeminiModel;
+
+      // 1. Thử gọi ListModels để lấy chính xác model mà Key này được phép dùng
+      try {
+        const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        if (listRes.ok) {
+          const listData = await listRes.json();
+          if (listData.models && listData.models.length > 0) {
+            const contentModels = listData.models.filter(m => m.supportedGenerationMethods?.includes('generateContent'));
+            const chosen = contentModels.find(m => m.name.includes('2.5-flash')) ||
+                           contentModels.find(m => m.name.includes('2.0-flash')) ||
+                           contentModels.find(m => m.name.includes('flash')) || 
+                           contentModels.find(m => m.name.includes('gemini')) || 
+                           contentModels[0];
+            if (chosen) {
+              activeGeminiModel = {
+                version: 'v1beta',
+                name: chosen.name.replace('models/', '')
+              };
+              return activeGeminiModel;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Lỗi kiểm tra ListModels:', e);
+      }
+
+      // Danh sách dự phòng nếu không list được
+      return { version: 'v1beta', name: 'gemini-2.5-flash' };
+    }
+
     async function processWithGeminiAI(blob) {
       const apiKey = getStoredApiKey();
       if (!apiKey) {
@@ -548,17 +582,17 @@
         return null;
       }
 
-      ocrStatusText.textContent = 'AI đang đọc nội dung ảnh...';
-      ocrSubText.textContent = 'Mắt thần AI đang trích xuất từng từ ngữ tiếng Việt chuẩn xác';
-      ocrProgressBar.style.width = '65%';
+      ocrStatusText.textContent = 'AI đang kết nối và đọc ảnh...';
+      ocrSubText.textContent = 'Mắt thần AI đang trích xuất chữ tiếng Việt';
+      ocrProgressBar.style.width = '60%';
 
       const base64Data = await blobToBase64(blob);
 
-      const promptText = `Hãy trích xuất chính xác 100% toàn bộ nội dung văn bản (chữ tiếng Việt có dấu, tiếng Anh, số, bảng biểu nếu có) có trong bức ảnh này.
-Yêu cầu bắt buộc:
-1. Đọc đúng tuyệt đối chính tả tiếng Việt có dấu, sửa các lỗi chính tả rõ ràng do góc chụp mờ.
-2. Giữ nguyên định dạng xuống dòng của các câu và đoạn văn bản.
-3. Chỉ trả về duy nhất nội dung văn bản đã bóc tách, KHÔNG thêm bất kỳ lời chào hay giải thích nào khác.`;
+      const promptText = `Hãy trích xuất chính xác 100% toàn bộ nội dung văn bản (chữ tiếng Việt có dấu, tiếng Anh, số) có trong bức ảnh này.
+Yêu cầu:
+1. Đọc đúng tuyệt đối chính tả tiếng Việt có dấu.
+2. Giữ nguyên định dạng xuống dòng các câu.
+3. Chỉ trả về duy nhất nội dung văn bản bóc tách, KHÔNG thêm lời giải thích nào khác.`;
 
       const payload = {
         contents: [
@@ -576,13 +610,27 @@ Yêu cầu bắt buộc:
         ]
       };
 
-      // Thử gọi gemini-2.0-flash hoặc gemini-1.5-flash
-      const models = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+      // Danh sách các model của Google Gemini (Ưu tiên gemini-2.5-flash và 2.0-flash mới nhất)
+      const candidateConfigs = [
+        { version: 'v1beta', model: 'gemini-2.5-flash' },
+        { version: 'v1beta', model: 'gemini-2.0-flash' },
+        { version: 'v1beta', model: 'gemini-2.5-pro' },
+        { version: 'v1beta', model: 'gemini-1.5-flash-latest' },
+        { version: 'v1', model: 'gemini-2.5-flash' },
+        { version: 'v1', model: 'gemini-1.5-flash' }
+      ];
+
+      // Thử model từ ListModels trước
+      const autoModel = await findWorkingGeminiModel(apiKey);
+      if (autoModel) {
+        candidateConfigs.unshift(autoModel);
+      }
+
       let lastError = null;
 
-      for (const model of models) {
+      for (const config of candidateConfigs) {
         try {
-          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+          const endpoint = `https://generativelanguage.googleapis.com/${config.version}/models/${config.model}:generateContent?key=${apiKey}`;
           const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
@@ -595,17 +643,25 @@ Yêu cầu bắt buộc:
           if (response.ok) {
             const result = await response.json();
             const extractedText = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+            activeGeminiModel = config; // Lưu lại model đã chạy thành công
             return extractedText;
           } else {
             const errData = await response.json().catch(() => ({}));
             lastError = errData.error?.message || `Lỗi HTTP ${response.status}`;
+            // Nếu lỗi model không tồn tại thì tiếp tục thử model khác
+            if (!lastError.includes('not found')) {
+              break;
+            }
           }
         } catch (e) {
           lastError = e.message;
         }
       }
 
-      throw new Error('Lỗi kết nối AI: ' + lastError);
+      // TỰ ĐỘNG CHUYỂN SANG OFFLINE NẾU KEY GCP CHƯA MỞ QUYỀN GEMINI
+      console.warn('AI không khả dụng, tự động chuyển sang chế độ quét Offline:', lastError);
+      showToast('Key chưa kích hoạt Gemini, chuyển sang quét Offline!', true);
+      return await processWithOfflineTesseract(blob);
     }
 
     // 4. CHẾ ĐỘ QUÉT OFFLINE BẰNG TESSERACT (Dự phòng)

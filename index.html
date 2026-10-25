@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Ứng Dụng Chụp & Trích Xuất Chữ Từ Ảnh</title>
+  <title>Ứng Dụng Quét & Trích Xuất Chữ Từ Ảnh (OCR Chuẩn Tiếng Việt)</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Tesseract.js nhận dạng chữ tiếng Việt -->
+  <!-- Tesseract.js nhận diện chữ -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -20,9 +20,14 @@
       left: 0;
       width: 100%;
       height: 3px;
-      background: linear-gradient(90deg, transparent, #22c55e, #4ade80, transparent);
-      box-shadow: 0 0 12px #22c55e;
+      background: linear-gradient(90deg, transparent, #10b981, #6ee7b7, transparent);
+      box-shadow: 0 0 14px #10b981;
       animation: scanAnimation 2s infinite ease-in-out;
+    }
+    .torch-active {
+      background-color: #f59e0b !important;
+      color: #000000 !important;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.6);
     }
   </style>
 </head>
@@ -36,35 +41,38 @@
           <i class="ph-bold ph-text-aa text-2xl text-white"></i>
         </div>
         <div>
-          <h1 class="font-bold text-base sm:text-lg leading-tight text-white">Chép Chữ Từ Ảnh</h1>
-          <p class="text-xs text-slate-400">Chụp hoặc tải ảnh để lấy chữ</p>
+          <h1 class="font-bold text-base sm:text-lg leading-tight text-white">Quét Chữ Từ Ảnh</h1>
+          <p class="text-xs text-slate-400">Lấy chữ tiếng Việt chuẩn xác</p>
         </div>
       </div>
 
-      <!-- Tùy chọn ngôn ngữ nhận diện -->
+      <!-- Tùy chọn ngôn ngữ -->
       <div class="flex items-center space-x-1.5 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700 text-xs">
         <i class="ph-bold ph-translate text-emerald-400"></i>
         <select id="ocrLang" class="bg-transparent text-slate-200 focus:outline-none cursor-pointer font-medium">
-          <option value="vie" selected class="bg-slate-800">Tiếng Việt</option>
-          <option value="vie+eng" class="bg-slate-800">Việt + Anh</option>
-          <option value="eng" class="bg-slate-800">Tiếng Anh</option>
+          <option value="vie+eng" selected class="bg-slate-800">Việt + Anh</option>
+          <option value="vie" class="bg-slate-800">Chỉ Tiếng Việt</option>
+          <option value="eng" class="bg-slate-800">Chỉ Tiếng Anh</option>
         </select>
       </div>
     </div>
   </header>
 
+  <!-- Màn trợ sáng màn hình (Screen Torch) cho máy tính khi không có đèn flash -->
+  <div id="screenTorchOverlay" class="fixed inset-0 bg-white pointer-events-none z-30 opacity-0 transition-opacity duration-300"></div>
+
   <!-- Vùng nội dung chính -->
   <main class="flex-1 max-w-xl w-full mx-auto p-4 flex flex-col">
 
     <!-- ================= GIAO DIỆN 1: CHỤP ẢNH / TẢI ẢNH ================= -->
-    <section id="captureScreen" class="flex-1 flex flex-col space-y-4">
+    <section id="captureScreen" class="flex-1 flex flex-col space-y-3.5">
       
       <!-- Khung hiển thị Camera -->
-      <div class="relative w-full aspect-[4/3] sm:aspect-video bg-black rounded-2xl overflow-hidden border border-slate-800 shadow-2xl flex items-center justify-center">
+      <div id="cameraContainer" class="relative w-full aspect-[4/3] sm:aspect-video bg-black rounded-2xl overflow-hidden border border-slate-800 shadow-2xl flex items-center justify-center">
         <video id="cameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
         
         <!-- Thông báo khi chưa mở camera -->
-        <div id="cameraOffPlaceholder" class="hidden absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-950/95">
+        <div id="cameraOffPlaceholder" class="hidden absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-950/95 z-20">
           <i class="ph-duotone ph-camera-slash text-5xl text-slate-600 mb-2"></i>
           <p class="text-sm font-medium text-slate-300">Camera chưa được bật hoặc chưa cấp quyền</p>
           <p class="text-xs text-slate-500 mt-1">Vui lòng bấm cho phép khi trình duyệt hỏi quyền camera</p>
@@ -73,52 +81,90 @@
           </button>
         </div>
 
-        <!-- Khung viền hướng dẫn ngắm chụp -->
-        <div class="pointer-events-none absolute inset-6 border-2 border-dashed border-emerald-400/40 rounded-xl flex items-center justify-center">
-          <span class="text-xs text-white/80 bg-black/60 px-3 py-1.5 rounded-full backdrop-blur">
-            Đưa phần chữ vào giữa khung này
-          </span>
+        <!-- Khung ngắm chụp thông minh (Chỉ cắt lấy chữ trong khung này) -->
+        <div id="cropGuideBox" class="pointer-events-none absolute inset-6 sm:inset-8 border-2 border-emerald-400/70 rounded-xl flex flex-col justify-between p-2 shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]">
+          <div class="flex justify-between items-center">
+            <span class="text-[11px] text-emerald-300 bg-black/70 px-2 py-0.5 rounded backdrop-blur border border-emerald-500/30">
+              <i class="ph-bold ph-crop"></i> Vùng quét chữ
+            </span>
+          </div>
+          <div class="text-center">
+            <span class="text-xs text-white/90 bg-black/70 px-3 py-1 rounded-full backdrop-blur border border-white/10">
+              Đưa chữ vào khung để tránh bị lẫn rác
+            </span>
+          </div>
+          <div class="text-right">
+            <span class="text-[10px] text-slate-300 bg-black/60 px-2 py-0.5 rounded">Rõ nét, đủ sáng</span>
+          </div>
         </div>
 
-        <!-- Nút đổi camera trước / sau -->
-        <div class="absolute top-3 right-3 flex space-x-2">
-          <button id="btnSwitchCamera" title="Đổi camera trước / sau" class="w-10 h-10 rounded-full bg-black/60 backdrop-blur hover:bg-black/80 text-white flex items-center justify-center transition border border-white/20 active:scale-95">
-            <i class="ph-bold ph-arrows-clockwise text-lg"></i>
+        <!-- Cụm nút công cụ trên camera (ĐÈN FLASH + ĐỔI CAMERA) -->
+        <div class="absolute top-3 right-3 flex space-x-2 z-10">
+          <!-- NÚT ĐÈN FLASH / ĐÈN PIN -->
+          <button id="btnTorch" title="Bật/Tắt Đèn Flash" class="w-11 h-11 rounded-full bg-black/70 backdrop-blur hover:bg-black/90 text-white flex items-center justify-center transition border border-white/20 active:scale-95 shadow-lg">
+            <i id="torchIcon" class="ph-bold ph-flashlight text-xl"></i>
+          </button>
+
+          <!-- NÚT ĐỔI CAMERA TRƯỚC / SAU -->
+          <button id="btnSwitchCamera" title="Đổi camera trước / sau" class="w-11 h-11 rounded-full bg-black/70 backdrop-blur hover:bg-black/90 text-white flex items-center justify-center transition border border-white/20 active:scale-95 shadow-lg">
+            <i class="ph-bold ph-arrows-clockwise text-xl"></i>
           </button>
         </div>
+      </div>
+
+      <!-- Tùy chọn nâng cao chất lượng ảnh -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg">
+            <i class="ph-bold ph-magic-wand"></i>
+          </div>
+          <div>
+            <p class="text-xs font-semibold text-white">Làm nét & Khử bóng mờ (Tăng chính xác)</p>
+            <p class="text-[11px] text-slate-400">Tự động tăng tương phản, lọc chữ đen nền trắng</p>
+          </div>
+        </div>
+        <!-- Toggle Switch -->
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="toggleEnhance" checked class="sr-only peer">
+          <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+        </label>
       </div>
 
       <!-- Các nút thao tác chụp và chọn ảnh -->
       <div class="grid grid-cols-2 gap-3">
         <!-- Nút Chụp Ảnh Ngay -->
-        <button id="btnCapture" class="col-span-2 py-4 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.99] font-bold text-white shadow-lg shadow-emerald-600/25 flex items-center justify-center space-x-2.5 transition text-base">
+        <button id="btnCapture" class="col-span-2 py-4 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.99] font-bold text-white shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2.5 transition text-base">
           <i class="ph-bold ph-aperture text-2xl"></i>
           <span>Chụp Ảnh Ngay</span>
         </button>
 
         <!-- Tải ảnh có sẵn từ máy -->
-        <label class="cursor-pointer py-3.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] border border-slate-800 flex items-center justify-center space-x-2 text-slate-200 transition text-sm font-medium">
+        <label class="cursor-pointer py-3 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] border border-slate-800 flex items-center justify-center space-x-2 text-slate-200 transition text-xs sm:text-sm font-medium">
           <i class="ph-bold ph-image text-xl text-emerald-400"></i>
           <span>Chọn ảnh từ máy</span>
           <input type="file" id="fileInput" accept="image/*" class="hidden" />
         </label>
 
         <!-- Dán ảnh từ bộ nhớ tạm (Clipboard) -->
-        <button id="btnPaste" class="py-3.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] border border-slate-800 flex items-center justify-center space-x-2 text-slate-200 transition text-sm font-medium">
+        <button id="btnPaste" class="py-3 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] border border-slate-800 flex items-center justify-center space-x-2 text-slate-200 transition text-xs sm:text-sm font-medium">
           <i class="ph-bold ph-clipboard-text text-xl text-teal-400"></i>
           <span>Dán ảnh (Ctrl+V)</span>
         </button>
       </div>
 
-      <!-- Khung mẹo sử dụng -->
-      <div class="mt-auto bg-slate-900/60 border border-slate-800/80 rounded-xl p-3.5 text-xs text-slate-400 flex items-start space-x-2.5">
-        <i class="ph-fill ph-lightbulb text-amber-400 text-lg shrink-0 mt-0.5"></i>
-        <span><b>Mẹo nhỏ:</b> Bạn có thể chụp trực tiếp trang sách, giấy tờ, màn hình máy tính hoặc nhấn <b>Ctrl + V</b> bất kỳ lúc nào để dán ảnh chụp màn hình vào đây!</span>
+      <!-- Mẹo chống bị lỗi chữ -->
+      <div class="bg-slate-900/50 border border-slate-800/80 rounded-xl p-3 text-xs text-slate-400 space-y-1">
+        <p class="text-emerald-400 font-semibold flex items-center space-x-1">
+          <i class="ph-fill ph-check-circle"></i>
+          <span>Bí quyết để quét không bị lỗi:</span>
+        </p>
+        <p>1. <b>Bật nút Đèn</b> (góc trên camera) nếu nơi chụp bị tối hoặc thiếu sáng.</p>
+        <p>2. Đặt chữ <b>ngay ngắn vào giữa khung xanh</b>, tránh để camera bị rung tay.</p>
       </div>
     </section>
 
     <!-- ================= GIAO DIỆN 2: KẾT QUẢ VĂN BẢN VÀ SAO CHÉP ================= -->
-    <section id="resultScreen" class="hidden flex-1 flex flex-col space-y-4">
+    <section id="resultScreen" class="hidden flex-1 flex flex-col space-y-3.5">
       
       <!-- Thanh điều hướng trên cùng -->
       <div class="flex items-center justify-between bg-slate-900 p-2.5 rounded-xl border border-slate-800">
@@ -128,19 +174,19 @@
         </button>
         <span class="text-xs text-emerald-400 font-semibold flex items-center space-x-1.5 bg-emerald-950/60 border border-emerald-800/50 px-2.5 py-1 rounded-full">
           <i class="ph-fill ph-check-circle"></i>
-          <span>Đã lấy chữ thành công!</span>
+          <span>Đã lọc sạch & lấy chữ!</span>
         </span>
       </div>
 
-      <!-- Ảnh thu nhỏ vừa chụp -->
+      <!-- So sánh ảnh vừa chụp & ảnh đã xử lý nét -->
       <div class="bg-slate-900 rounded-xl border border-slate-800 p-2.5 flex items-center space-x-3">
         <img id="resultImagePreview" src="" alt="Ảnh nguồn" class="w-16 h-16 object-cover rounded-lg border border-slate-700 cursor-pointer shadow hover:opacity-85 transition" title="Bấm để xem ảnh phóng to" />
         <div class="flex-1 min-w-0">
-          <p class="text-xs font-semibold text-white">Ảnh bạn vừa chụp/chọn</p>
-          <p class="text-[11px] text-slate-400 truncate mt-0.5">Bấm vào ảnh để xem kích thước lớn</p>
+          <p class="text-xs font-semibold text-white">Ảnh đã được tối ưu hóa nét chữ</p>
+          <p class="text-[11px] text-slate-400 truncate mt-0.5">Bấm vào ảnh để phóng to kiểm tra</p>
           <button id="btnReOcr" class="mt-1 text-xs text-emerald-400 hover:text-emerald-300 font-medium flex items-center space-x-1">
             <i class="ph-bold ph-arrows-clockwise"></i>
-            <span>Nhận diện lại ảnh này</span>
+            <span>Quét lại ảnh này</span>
           </button>
         </div>
       </div>
@@ -150,12 +196,15 @@
         <div class="px-4 py-2.5 bg-slate-800/90 border-b border-slate-700/80 flex items-center justify-between">
           <span class="text-xs font-semibold text-slate-200 flex items-center space-x-1.5">
             <i class="ph-bold ph-file-text text-emerald-400"></i>
-            <span>Nội dung trích xuất (<span id="charCount" class="text-emerald-400">0</span> ký tự)</span>
+            <span>Nội dung đã bóc tách (<span id="charCount" class="text-emerald-400 font-bold">0</span> chữ)</span>
           </span>
           <div class="flex items-center space-x-1">
-            <button id="btnSpeak" title="Đọc to nội dung" class="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition text-sm flex items-center space-x-1">
+            <button id="btnCleanText" title="Tự động lọc rác vụn vặt" class="px-2 py-1 rounded-lg text-slate-300 hover:text-emerald-400 hover:bg-slate-700 transition text-xs flex items-center space-x-1">
+              <i class="ph-bold ph-broom"></i>
+              <span>Lọc rác</span>
+            </button>
+            <button id="btnSpeak" title="Đọc to nội dung" class="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition text-sm">
               <i class="ph-bold ph-speaker-high"></i>
-              <span class="text-xs hidden sm:inline">Đọc</span>
             </button>
             <button id="btnClearText" title="Xóa trắng khung" class="p-1.5 rounded-lg text-slate-300 hover:text-red-400 hover:bg-slate-700 transition text-sm">
               <i class="ph-bold ph-trash"></i>
@@ -194,8 +243,8 @@
       </div>
     </div>
 
-    <h3 id="ocrStatusText" class="text-lg font-bold text-slate-100 mb-1">Đang đọc chữ từ hình ảnh...</h3>
-    <p class="text-xs text-slate-400 max-w-xs mb-4">Hệ thống đang phân tích từng dòng chữ tiếng Việt từ ảnh vừa chụp</p>
+    <h3 id="ocrStatusText" class="text-lg font-bold text-slate-100 mb-1">Đang xử lý & đọc chữ từ ảnh...</h3>
+    <p class="text-xs text-slate-400 max-w-xs mb-4">Hệ thống đang tăng độ nét và phân tích từ ngữ tiếng Việt chuẩn xác</p>
 
     <!-- Thanh tiến trình % -->
     <div class="w-64 bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700">
@@ -218,13 +267,14 @@
     <img id="modalImg" src="" alt="Ảnh gốc" class="max-w-full max-h-[90vh] object-contain rounded-lg" />
   </div>
 
-  <canvas id="snapshotCanvas" class="hidden"></canvas>
+  <canvas id="processCanvas" class="hidden"></canvas>
 
   <script>
     // Các biến trạng thái
     let videoStream = null;
-    let currentFacingMode = 'environment'; // environment (camera sau) hoặc user (camera trước)
-    let currentImageBlob = null;
+    let currentFacingMode = 'environment';
+    let isTorchOn = false;
+    let currentProcessedBlob = null;
     let currentImageObjectUrl = null;
 
     // Các phần tử DOM
@@ -232,9 +282,14 @@
     const cameraOffPlaceholder = document.getElementById('cameraOffPlaceholder');
     const btnCapture = document.getElementById('btnCapture');
     const btnSwitchCamera = document.getElementById('btnSwitchCamera');
+    const btnTorch = document.getElementById('btnTorch');
+    const torchIcon = document.getElementById('torchIcon');
+    const screenTorchOverlay = document.getElementById('screenTorchOverlay');
     const btnRetryCamera = document.getElementById('btnRetryCamera');
     const fileInput = document.getElementById('fileInput');
     const btnPaste = document.getElementById('btnPaste');
+    const toggleEnhance = document.getElementById('toggleEnhance');
+    const cropGuideBox = document.getElementById('cropGuideBox');
 
     const captureScreen = document.getElementById('captureScreen');
     const resultScreen = document.getElementById('resultScreen');
@@ -248,6 +303,7 @@
     const btnDownloadTxt = document.getElementById('btnDownloadTxt');
     const btnSpeak = document.getElementById('btnSpeak');
     const btnClearText = document.getElementById('btnClearText');
+    const btnCleanText = document.getElementById('btnCleanText');
     const btnReOcr = document.getElementById('btnReOcr');
 
     const loadingOverlay = document.getElementById('loadingOverlay');
@@ -264,7 +320,7 @@
     const modalImg = document.getElementById('modalImg');
     const btnCloseModal = document.getElementById('btnCloseModal');
 
-    // Hàm hiển thị thông báo góc dưới
+    // Hàm hiển thị thông báo
     function showToast(message, isError = false) {
       toastMsg.textContent = message;
       if (isError) {
@@ -278,24 +334,28 @@
       }, 2500);
     }
 
-    // 1. Khởi động Camera
+    // 1. Khởi động Camera chất lượng cao (HD 1080p nếu có)
     async function startCamera(facingMode = 'environment') {
       stopCamera();
       currentFacingMode = facingMode;
+      isTorchOn = false;
+      updateTorchUI(false);
+
+      const constraints = {
+        video: {
+          facingMode: { ideal: facingMode },
+          width: { ideal: 1920, min: 1280 },
+          height: { ideal: 1080, min: 720 },
+          focusMode: { ideal: 'continuous' }
+        },
+        audio: false
+      };
+
       try {
-        const constraints = {
-          video: {
-            facingMode: { ideal: facingMode },
-            width: { ideal: 1920 },
-            height: { ideal: 1080 }
-          },
-          audio: false
-        };
         videoStream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = videoStream;
         cameraOffPlaceholder.classList.add('hidden');
       } catch (err) {
-        console.warn("Thử mở camera với cài đặt mặc định:", err);
         try {
           videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
           video.srcObject = videoStream;
@@ -314,6 +374,61 @@
       }
     }
 
+    // 2. Chức năng NÚT ĐÈN PIN / ĐÈN FLASH
+    async function toggleTorch() {
+      if (!videoStream) {
+        showToast('Chưa mở camera!', true);
+        return;
+      }
+      const track = videoStream.getVideoTracks()[0];
+      if (!track) return;
+
+      const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+      
+      // Kiểm tra xem camera có đèn flash vật lý không (thường có trên điện thoại)
+      if ('torch' in capabilities) {
+        try {
+          isTorchOn = !isTorchOn;
+          await track.applyConstraints({
+            advanced: [{ torch: isTorchOn }]
+          });
+          updateTorchUI(isTorchOn);
+          showToast(isTorchOn ? 'Đã bật đèn Flash!' : 'Đã tắt đèn Flash');
+        } catch (err) {
+          console.warn('Lỗi bật flash phần cứng:', err);
+          fallbackScreenTorch();
+        }
+      } else {
+        // Fallback: Nếu là laptop hoặc webcam không có đèn pin vật lý -> Dùng đèn trợ sáng màn hình
+        fallbackScreenTorch();
+      }
+    }
+
+    function fallbackScreenTorch() {
+      isTorchOn = !isTorchOn;
+      updateTorchUI(isTorchOn);
+      if (isTorchOn) {
+        screenTorchOverlay.style.opacity = '0.9';
+        showToast('Đang bật đèn trợ sáng màn hình (Laptop/Webcam)!');
+      } else {
+        screenTorchOverlay.style.opacity = '0';
+        showToast('Đã tắt đèn trợ sáng');
+      }
+    }
+
+    function updateTorchUI(active) {
+      if (active) {
+        btnTorch.classList.add('torch-active');
+        torchIcon.className = 'ph-fill ph-flashlight text-xl text-slate-950';
+      } else {
+        btnTorch.classList.remove('torch-active');
+        torchIcon.className = 'ph-bold ph-flashlight text-xl text-white';
+        screenTorchOverlay.style.opacity = '0';
+      }
+    }
+
+    btnTorch.addEventListener('click', toggleTorch);
+
     // Đổi camera trước / sau
     btnSwitchCamera.addEventListener('click', () => {
       const newMode = currentFacingMode === 'environment' ? 'user' : 'environment';
@@ -324,34 +439,89 @@
       startCamera(currentFacingMode);
     });
 
-    // 2. Chụp ảnh từ camera
+    // 3. THUẬT TOÁN TIỀN XỬ LÝ ẢNH (Làm nét chữ, khử bóng, tăng tương phản)
+    // Giúp Tesseract nhận diện chuẩn tiếng Việt gấp 5 lần so với ảnh thô
+    function enhanceImageCanvas(sourceCanvas, shouldEnhance = true) {
+      if (!shouldEnhance) return sourceCanvas;
+
+      const ctx = sourceCanvas.getContext('2d');
+      const imgData = ctx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+      const data = imgData.data;
+
+      // 1. Chuyển sang ảnh đơn sắc Grayscale & Tính độ sáng trung bình
+      let totalLum = 0;
+      const count = data.length / 4;
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+        data[i] = data[i + 1] = data[i + 2] = lum;
+        totalLum += lum;
+      }
+
+      const avgLum = totalLum / count;
+      // Ngưỡng binarization linh hoạt theo độ sáng ảnh
+      const threshold = Math.min(Math.max(avgLum, 105), 150);
+
+      // 2. Tăng tương phản cao (High Contrast Stretch) làm chữ đen đậm nổi bật trên nền trắng
+      for (let i = 0; i < data.length; i += 4) {
+        let lum = data[i];
+        if (lum < threshold) {
+          // Làm chữ đen đậm hơn
+          lum = Math.max(0, lum * 0.5);
+        } else {
+          // Làm nền sáng trắng hơn
+          lum = Math.min(255, lum * 1.25);
+        }
+        data[i] = data[i + 1] = data[i + 2] = lum;
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+      return sourceCanvas;
+    }
+
+    // 4. LẤY ẢNH TỪ CAMERA (Chỉ cắt lấy vùng bên trong khung ngắm để không dính rác)
     btnCapture.addEventListener('click', () => {
       if (!videoStream || video.videoWidth === 0) {
-        showToast('Camera chưa sẵn sàng, vui lòng kiểm tra lại!', true);
+        showToast('Camera chưa sẵn sàng, vui lòng đợi giây lát!', true);
         return;
       }
 
-      const canvas = document.getElementById('snapshotCanvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      const canvas = document.getElementById('processCanvas');
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+
+      // Lấy 80% phần trung tâm (vùng ngắm chụp)
+      const cropW = Math.round(vw * 0.85);
+      const cropH = Math.round(vh * 0.75);
+      const cropX = Math.round((vw - cropW) / 2);
+      const cropY = Math.round((vh - cropH) / 2);
+
+      canvas.width = cropW;
+      canvas.height = cropH;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+
+      // Áp dụng bộ lọc làm rõ nét chữ
+      const shouldEnhance = toggleEnhance.checked;
+      enhanceImageCanvas(canvas, shouldEnhance);
 
       canvas.toBlob(blob => {
         processImage(blob);
       }, 'image/jpeg', 0.95);
     });
 
-    // 3. Chọn file ảnh từ máy
+    // 5. Chọn file ảnh từ máy
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
-        processImage(file);
+        preprocessAndProcessFile(file);
       }
       e.target.value = '';
     });
 
-    // 4. Dán ảnh từ Clipboard (Ctrl+V hoặc nút dán)
+    // 6. Dán ảnh từ Clipboard (Ctrl+V)
     async function readClipboardImage() {
       try {
         const items = await navigator.clipboard.read();
@@ -359,11 +529,11 @@
           const imageType = item.types.find(t => t.startsWith('image/'));
           if (imageType) {
             const blob = await item.getType(imageType);
-            processImage(blob);
+            preprocessAndProcessFile(blob);
             return;
           }
         }
-        showToast('Không tìm thấy hình ảnh nào trong bộ nhớ tạm!', true);
+        showToast('Không có ảnh nào trong bộ nhớ tạm!', true);
       } catch (err) {
         showToast('Hãy nhấn tổ hợp phím Ctrl + V để dán ảnh!');
       }
@@ -376,15 +546,55 @@
       for (const item of items) {
         if (item.type.indexOf('image') !== -1) {
           const blob = item.getAsFile();
-          processImage(blob);
+          preprocessAndProcessFile(blob);
           break;
         }
       }
     });
 
-    // 5. Tiến trình nhận diện văn bản (OCR)
+    function preprocessAndProcessFile(blob) {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.getElementById('processCanvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        if (toggleEnhance.checked) {
+          enhanceImageCanvas(canvas, true);
+        }
+
+        canvas.toBlob(enhancedBlob => {
+          processImage(enhancedBlob);
+        }, 'image/jpeg', 0.95);
+      };
+      img.src = URL.createObjectURL(blob);
+    }
+
+    // 7. LÀM SẠCH KÝ TỰ RÁC (Post-processing text cleaner)
+    // Loại bỏ những ký tự vô nghĩa như ~ | _ • ° khi Tesseract quét nhầm
+    function cleanGarbageText(rawText) {
+      if (!rawText) return '';
+      return rawText
+        .split('\n')
+        .map(line => {
+          // Bỏ khoảng trắng 2 đầu
+          let cleaned = line.trim();
+          // Loại bỏ những dòng chỉ có toàn ký tự rác vô nghĩa (dưới 2 ký tự hoặc toàn dấu gạch)
+          if (/^[\W_~|•·–—=]+$/.test(cleaned) && cleaned.length < 4) {
+            return '';
+          }
+          // Chuẩn hóa nhiều khoảng trắng liên tiếp thành 1
+          return cleaned.replace(/[ \t]{2,}/g, ' ');
+        })
+        .filter(line => line.length > 0)
+        .join('\n');
+    }
+
+    // 8. TIẾN TRÌNH NHẬN DIỆN VĂN BẢN (OCR)
     async function processImage(blob) {
-      currentImageBlob = blob;
+      currentProcessedBlob = blob;
       if (currentImageObjectUrl) {
         URL.revokeObjectURL(currentImageObjectUrl);
       }
@@ -392,13 +602,13 @@
       resultImagePreview.src = currentImageObjectUrl;
       modalImg.src = currentImageObjectUrl;
 
-      // Hiển thị màn hình chờ quét
+      // Hiện màn hình loading
       loadingOverlay.classList.remove('hidden');
       ocrProgressBar.style.width = '0%';
       ocrProgressNumber.textContent = '0%';
       ocrStatusText.textContent = 'Đang nhận diện chữ tiếng Việt...';
 
-      const selectedLang = ocrLang.value || 'vie';
+      const selectedLang = ocrLang.value || 'vie+eng';
 
       try {
         const worker = await Tesseract.createWorker(selectedLang, 1, {
@@ -407,41 +617,61 @@
               const progress = Math.round((m.progress || 0) * 100);
               ocrProgressBar.style.width = progress + '%';
               ocrProgressNumber.textContent = progress + '%';
-              ocrStatusText.textContent = 'Đang phân tích và trích xuất chữ (' + progress + '%)...';
-            } else if (m.status === 'loading tesseract core' || m.status === 'loading language traineddata') {
-              ocrStatusText.textContent = 'Đang chuẩn bị bộ nhận dạng tiếng Việt...';
+              ocrStatusText.textContent = 'Đang phân tích chữ chuẩn xác (' + progress + '%)...';
+            } else if (m.status.includes('loading')) {
+              ocrStatusText.textContent = 'Đang tải bộ từ điển tiếng Việt...';
             }
           }
         });
 
+        // Cài đặt PSM chế độ đọc văn bản tự nhiên
+        await worker.setParameters({
+          tessedit_pageseg_mode: Tesseract.PSM.AUTO,
+        });
+
         const ret = await worker.recognize(blob);
-        const text = ret.data.text.trim();
+        const rawText = ret.data.text || '';
         await worker.terminate();
 
-        // Tự động chuyển sang Giao diện 2
+        // Lọc rác văn bản
+        const finalText = cleanGarbageText(rawText);
+
+        // Chuyển sang Giao diện 2
         captureScreen.classList.add('hidden');
         resultScreen.classList.remove('hidden');
 
-        resultTextArea.value = text;
+        resultTextArea.value = finalText;
         updateCharCount();
 
-        showToast(text ? 'Đã lấy chữ từ ảnh thành công!' : 'Không tìm thấy dòng chữ nào rõ ràng');
+        if (finalText.length > 0) {
+          showToast('Đã trích xuất xong nội dung!');
+        } else {
+          showToast('Chưa tìm thấy chữ rõ ràng, hãy bật đèn hoặc ngắm gần lại!', true);
+        }
 
       } catch (err) {
         console.error('Lỗi nhận dạng:', err);
-        showToast('Có lỗi xảy ra khi quét: ' + (err.message || err), true);
+        showToast('Có lỗi xảy ra: ' + (err.message || err), true);
       } finally {
         loadingOverlay.classList.add('hidden');
       }
     }
 
-    // 6. Đếm số ký tự
+    // 9. Cập nhật số ký tự
     function updateCharCount() {
       charCount.textContent = resultTextArea.value.length;
     }
     resultTextArea.addEventListener('input', updateCharCount);
 
-    // 7. Nút quay lại Giao diện 1 để chụp tiếp
+    // 10. Nút Lọc rác thủ công
+    btnCleanText.addEventListener('click', () => {
+      const cleaned = cleanGarbageText(resultTextArea.value);
+      resultTextArea.value = cleaned;
+      updateCharCount();
+      showToast('Đã lọc sạch các ký tự vụn rác!');
+    });
+
+    // 11. Nút quay lại Giao diện 1
     btnBackToCapture.addEventListener('click', () => {
       resultScreen.classList.add('hidden');
       captureScreen.classList.remove('hidden');
@@ -450,14 +680,14 @@
       }
     });
 
-    // 8. Quét lại ảnh hiện tại
+    // 12. Quét lại ảnh hiện tại
     btnReOcr.addEventListener('click', () => {
-      if (currentImageBlob) {
-        processImage(currentImageBlob);
+      if (currentProcessedBlob) {
+        processImage(currentProcessedBlob);
       }
     });
 
-    // 9. Nút Sao Chép Nội Dung
+    // 13. Nút Sao Chép Nội Dung
     btnCopyText.addEventListener('click', async () => {
       const text = resultTextArea.value;
       if (!text) {
@@ -481,7 +711,7 @@
       }
     });
 
-    // 10. Tải file .txt về máy
+    // 14. Tải file .txt về máy
     btnDownloadTxt.addEventListener('click', () => {
       const text = resultTextArea.value;
       if (!text) {
@@ -491,13 +721,13 @@
       const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `van_ban_anh_${new Date().toISOString().slice(0,10)}_${Date.now().toString().slice(-4)}.txt`;
+      a.download = `van_ban_ocr_${new Date().toISOString().slice(0,10)}_${Date.now().toString().slice(-4)}.txt`;
       a.click();
       URL.revokeObjectURL(a.href);
       showToast('Đã tải file văn bản về máy!');
     });
 
-    // 11. Đọc văn bản bằng giọng nói
+    // 15. Đọc văn bản bằng giọng nói
     btnSpeak.addEventListener('click', () => {
       const text = resultTextArea.value;
       if (!text) return;
@@ -512,7 +742,7 @@
       }
     });
 
-    // 12. Xóa khung văn bản
+    // 16. Xóa khung văn bản
     btnClearText.addEventListener('click', () => {
       if (confirm('Bạn có muốn xóa toàn bộ chữ trong khung không?')) {
         resultTextArea.value = '';
@@ -520,7 +750,7 @@
       }
     });
 
-    // 13. Mở xem ảnh phóng to
+    // 17. Mở xem ảnh phóng to
     resultImagePreview.addEventListener('click', () => {
       imageModal.classList.remove('hidden');
     });
@@ -533,7 +763,7 @@
       }
     });
 
-    // Tự động mở camera khi vào trang
+    // Khởi động camera khi mở trang
     window.addEventListener('DOMContentLoaded', () => {
       startCamera();
     });

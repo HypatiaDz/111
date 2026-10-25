@@ -699,14 +699,13 @@ Yêu cầu bắt buộc:
         ]
       };
 
-      // Danh sách các model của Google Gemini (Ưu tiên gemini-2.5-flash và 2.0-flash mới nhất)
+      // Danh sách các model của Google Gemini (Mặc định gemini-3.8-flash mới nhất)
       const candidateConfigs = [
+        { version: 'v1beta', model: 'gemini-3.8-flash' },
+        { version: 'v1', model: 'gemini-3.8-flash' },
         { version: 'v1beta', model: 'gemini-2.5-flash' },
         { version: 'v1beta', model: 'gemini-2.0-flash' },
-        { version: 'v1beta', model: 'gemini-2.5-pro' },
-        { version: 'v1beta', model: 'gemini-1.5-flash-latest' },
-        { version: 'v1', model: 'gemini-2.5-flash' },
-        { version: 'v1', model: 'gemini-1.5-flash' }
+        { version: 'v1beta', model: 'gemini-1.5-flash-latest' }
       ];
 
       let lastError = null;
@@ -730,8 +729,25 @@ Yêu cầu bắt buộc:
           } else {
             const errData = await response.json().catch(() => ({}));
             lastError = errData.error?.message || `Lỗi HTTP ${response.status}`;
-            if (!lastError.includes('not found')) {
-              break;
+
+            // Tự động thích ứng nếu Google gợi ý dùng model mới (Ví dụ: gemini-3.8-flash)
+            const suggestMatch = lastError.match(/use models\/([a-zA-Z0-9._-]+)/i);
+            if (suggestMatch && suggestMatch[1]) {
+              const suggestedModel = suggestMatch[1];
+              try {
+                const retryEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${suggestedModel}:generateContent?key=${apiKey}`;
+                const retryRes = await fetch(retryEndpoint, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+                  body: JSON.stringify(payload)
+                });
+                if (retryRes.ok) {
+                  const retryData = await retryRes.json();
+                  return retryData.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+                }
+              } catch (retryErr) {
+                console.warn('Lỗi khi thử model gợi ý:', retryErr);
+              }
             }
           }
         } catch (e) {

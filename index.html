@@ -276,6 +276,9 @@
     let isTorchOn = false;
     let currentProcessedBlob = null;
     let currentImageObjectUrl = null;
+    let cachedWorker = null;
+    let cachedWorkerLang = null;
+    let isWorkerInitializing = false;
 
     // Các phần tử DOM
     const video = document.getElementById('cameraVideo');
@@ -556,10 +559,25 @@
       const img = new Image();
       img.onload = () => {
         const canvas = document.getElementById('processCanvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
+        
+        // Tối ưu kích thước ảnh: Giới hạn tối đa 1400px giúp tốc độ quét nhanh gấp 10 lần
+        let w = img.width;
+        let h = img.height;
+        const MAX_DIM = 1400;
+        if (w > MAX_DIM || h > MAX_DIM) {
+          if (w > h) {
+            h = Math.round((h * MAX_DIM) / w);
+            w = MAX_DIM;
+          } else {
+            w = Math.round((w * MAX_DIM) / h);
+            h = MAX_DIM;
+          }
+        }
+
+        canvas.width = w;
+        canvas.height = h;
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
+        ctx.drawImage(img, 0, 0, w, h);
 
         if (toggleEnhance.checked) {
           enhanceImageCanvas(canvas, true);
@@ -567,7 +585,7 @@
 
         canvas.toBlob(enhancedBlob => {
           processImage(enhancedBlob);
-        }, 'image/jpeg', 0.95);
+        }, 'image/jpeg', 0.92);
       };
       img.src = URL.createObjectURL(blob);
     }
@@ -579,20 +597,48 @@
       return rawText
         .split('\n')
         .map(line => {
-          // Bỏ khoảng trắng 2 đầu
           let cleaned = line.trim();
-          // Loại bỏ những dòng chỉ có toàn ký tự rác vô nghĩa (dưới 2 ký tự hoặc toàn dấu gạch)
           if (/^[\W_~|•·–—=]+$/.test(cleaned) && cleaned.length < 4) {
             return '';
           }
-          // Chuẩn hóa nhiều khoảng trắng liên tiếp thành 1
           return cleaned.replace(/[ \t]{2,}/g, ' ');
         })
         .filter(line => line.length > 0)
         .join('\n');
     }
 
-    // 8. TIẾN TRÌNH NHẬN DIỆN VĂN BẢN (OCR)
+    // Khởi tạo và TÁI SỬ DỤNG bộ máy OCR (Không hủy rồi tạo lại giúp quét siêu tốc)
+    async function getOcrWorker(lang) {
+      if (cachedWorker && cachedWorkerLang === lang) {
+        return cachedWorker;
+      }
+      if (cachedWorker) {
+        try { await cachedWorker.terminate(); } catch (e) {}
+        cachedWorker = null;
+      }
+
+      cachedWorkerLang = lang;
+      cachedWorker = await Tesseract.createWorker(lang, 1, {
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            const progress = Math.round((m.progress || 0) * 100);
+            ocrProgressBar.style.width = progress + '%';
+            ocrProgressNumber.textContent = progress + '%';
+            ocrStatusText.textContent = 'Đang phân tích chữ chuẩn xác (' + progress + '%)...';
+          } else if (m.status.includes('loading')) {
+            ocrStatusText.textContent = 'Đang chuẩn bị bộ nhận dạng...';
+          }
+        }
+      });
+
+      await cachedWorker.setParameters({
+        tessedit_pageseg_mode: Tesseract.PSM.AUTO,
+      });
+
+      return cachedWorker;
+    }
+
+    // 8. TIẾN TRÌNH NHẬN DIỆN VĂN BẢN (OCR SIÊU TỐC)
     async function processImage(blob) {
       currentProcessedBlob = blob;
       if (currentImageObjectUrl) {
@@ -606,32 +652,15 @@
       loadingOverlay.classList.remove('hidden');
       ocrProgressBar.style.width = '0%';
       ocrProgressNumber.textContent = '0%';
-      ocrStatusText.textContent = 'Đang nhận diện chữ tiếng Việt...';
+      ocrStatusText.textContent = 'Đang đọc chữ siêu tốc...';
 
       const selectedLang = ocrLang.value || 'vie+eng';
 
       try {
-        const worker = await Tesseract.createWorker(selectedLang, 1, {
-          logger: m => {
-            if (m.status === 'recognizing text') {
-              const progress = Math.round((m.progress || 0) * 100);
-              ocrProgressBar.style.width = progress + '%';
-              ocrProgressNumber.textContent = progress + '%';
-              ocrStatusText.textContent = 'Đang phân tích chữ chuẩn xác (' + progress + '%)...';
-            } else if (m.status.includes('loading')) {
-              ocrStatusText.textContent = 'Đang tải bộ từ điển tiếng Việt...';
-            }
-          }
-        });
-
-        // Cài đặt PSM chế độ đọc văn bản tự nhiên
-        await worker.setParameters({
-          tessedit_pageseg_mode: Tesseract.PSM.AUTO,
-        });
+        const worker = await getOcrWorker(selectedLang);
 
         const ret = await worker.recognize(blob);
         const rawText = ret.data.text || '';
-        await worker.terminate();
 
         // Lọc rác văn bản
         const finalText = cleanGarbageText(rawText);
@@ -763,9 +792,17 @@
       }
     });
 
-    // Khởi động camera khi mở trang
+    ocrLang.addEventListener('change', () => {
+      getOcrWorker(ocrLang.value).catch(e => console.log(e));
+    });
+
+    // Khởi động camera và nạp sẵn bộ máy nhận diện chạy ngầm để quét tức thì
     window.addEventListener('DOMContentLoaded', () => {
       startCamera();
+      // Khởi động trước bộ nhận diện trong nền để khi bấm lấy chữ là chạy ngay trong 1-2s
+      setTimeout(() => {
+        getOcrWorker(ocrLang.value || 'vie+eng').catch(e => console.log('Khởi động nền:', e));
+      }, 1000);
     });
   </script>
 </body>

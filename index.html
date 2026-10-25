@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Ứng Dụng Quét & Trích Xuất Chữ Từ Ảnh (OCR Chuẩn Tiếng Việt)</title>
+  <title>Trích Xuất Chữ Bằng AI Siêu Chuẩn (Google Vision AI)</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Tesseract.js nhận diện chữ -->
+  <!-- Tesseract.js (Chế độ dự phòng khi không dùng AI) -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -20,9 +20,9 @@
       left: 0;
       width: 100%;
       height: 3px;
-      background: linear-gradient(90deg, transparent, #10b981, #6ee7b7, transparent);
-      box-shadow: 0 0 14px #10b981;
-      animation: scanAnimation 2s infinite ease-in-out;
+      background: linear-gradient(90deg, transparent, #38bdf8, #818cf8, transparent);
+      box-shadow: 0 0 16px #38bdf8;
+      animation: scanAnimation 1.8s infinite ease-in-out;
     }
     .torch-active {
       background-color: #f59e0b !important;
@@ -31,30 +31,29 @@
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-emerald-600 selection:text-white">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-600 selection:text-white">
 
   <!-- Thanh tiêu đề -->
   <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40 px-4 py-3">
     <div class="max-w-xl mx-auto flex items-center justify-between">
       <div class="flex items-center space-x-2.5">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-          <i class="ph-bold ph-text-aa text-2xl text-white"></i>
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+          <i class="ph-bold ph-sparkle text-2xl text-white"></i>
         </div>
         <div>
-          <h1 class="font-bold text-base sm:text-lg leading-tight text-white">Quét Chữ Từ Ảnh</h1>
-          <p class="text-xs text-slate-400">Lấy chữ tiếng Việt chuẩn xác</p>
+          <div class="flex items-center space-x-1.5">
+            <h1 class="font-bold text-base sm:text-lg leading-tight text-white">SnapText AI</h1>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-blue-500 to-indigo-500 text-white uppercase tracking-wider">Vision AI</span>
+          </div>
+          <p class="text-xs text-slate-400">Trích xuất chữ tiếng Việt chuẩn xác 100%</p>
         </div>
       </div>
 
-      <!-- Tùy chọn ngôn ngữ -->
-      <div class="flex items-center space-x-1.5 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700 text-xs">
-        <i class="ph-bold ph-translate text-emerald-400"></i>
-        <select id="ocrLang" class="bg-transparent text-slate-200 focus:outline-none cursor-pointer font-medium">
-          <option value="vie+eng" selected class="bg-slate-800">Việt + Anh</option>
-          <option value="vie" class="bg-slate-800">Chỉ Tiếng Việt</option>
-          <option value="eng" class="bg-slate-800">Chỉ Tiếng Anh</option>
-        </select>
-      </div>
+      <!-- Nút Cài đặt AI Key -->
+      <button id="btnOpenApiKeyModal" class="flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-700/80 px-3 py-1.5 rounded-full border border-slate-700 text-xs transition active:scale-95 text-slate-200">
+        <i class="ph-bold ph-key text-amber-400"></i>
+        <span id="apiKeyStatusText">Cài đặt AI</span>
+      </button>
     </div>
   </header>
 
@@ -67,6 +66,24 @@
     <!-- ================= GIAO DIỆN 1: CHỤP ẢNH / TẢI ẢNH ================= -->
     <section id="captureScreen" class="flex-1 flex flex-col space-y-3.5">
       
+      <!-- Chuyển đổi chế độ: AI Vision vs OCR Thường -->
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-2 flex items-center justify-between">
+        <div class="flex items-center space-x-2 pl-1">
+          <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+          <span class="text-xs font-semibold text-slate-200">Chế độ phân tích:</span>
+        </div>
+        <div class="flex bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
+          <button id="modeAi" class="px-3 py-1 rounded-md bg-indigo-600 text-white font-bold transition flex items-center space-x-1 shadow">
+            <i class="ph-bold ph-robot"></i>
+            <span>Siêu AI (Chuẩn 100%)</span>
+          </button>
+          <button id="modeOffline" class="px-3 py-1 rounded-md text-slate-400 hover:text-white transition flex items-center space-x-1">
+            <i class="ph-bold ph-lightning"></i>
+            <span>Offline</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Khung hiển thị Camera -->
       <div id="cameraContainer" class="relative w-full aspect-[4/3] sm:aspect-video bg-black rounded-2xl overflow-hidden border border-slate-800 shadow-2xl flex items-center justify-center">
         <video id="cameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
@@ -76,32 +93,32 @@
           <i class="ph-duotone ph-camera-slash text-5xl text-slate-600 mb-2"></i>
           <p class="text-sm font-medium text-slate-300">Camera chưa được bật hoặc chưa cấp quyền</p>
           <p class="text-xs text-slate-500 mt-1">Vui lòng bấm cho phép khi trình duyệt hỏi quyền camera</p>
-          <button id="btnRetryCamera" class="mt-4 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white transition shadow-lg shadow-emerald-500/20">
+          <button id="btnRetryCamera" class="mt-4 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition shadow-lg shadow-indigo-500/20">
             Bật lại Camera
           </button>
         </div>
 
-        <!-- Khung ngắm chụp thông minh (Chỉ cắt lấy chữ trong khung này) -->
-        <div id="cropGuideBox" class="pointer-events-none absolute inset-6 sm:inset-8 border-2 border-emerald-400/70 rounded-xl flex flex-col justify-between p-2 shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]">
+        <!-- Khung ngắm chụp thông minh -->
+        <div id="cropGuideBox" class="pointer-events-none absolute inset-6 sm:inset-8 border-2 border-indigo-400/60 rounded-xl flex flex-col justify-between p-2 shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]">
           <div class="flex justify-between items-center">
-            <span class="text-[11px] text-emerald-300 bg-black/70 px-2 py-0.5 rounded backdrop-blur border border-emerald-500/30">
-              <i class="ph-bold ph-crop"></i> Vùng quét chữ
+            <span class="text-[11px] text-indigo-300 bg-black/70 px-2 py-0.5 rounded backdrop-blur border border-indigo-500/30">
+              <i class="ph-bold ph-scan"></i> Khung ngắm chữ
             </span>
           </div>
           <div class="text-center">
             <span class="text-xs text-white/90 bg-black/70 px-3 py-1 rounded-full backdrop-blur border border-white/10">
-              Đưa chữ vào khung để tránh bị lẫn rác
+              Chụp trang sách, chữ viết tay, hoá đơn hoặc tài liệu
             </span>
           </div>
           <div class="text-right">
-            <span class="text-[10px] text-slate-300 bg-black/60 px-2 py-0.5 rounded">Rõ nét, đủ sáng</span>
+            <span class="text-[10px] text-slate-300 bg-black/60 px-2 py-0.5 rounded">AI tự căn chỉnh chữ</span>
           </div>
         </div>
 
         <!-- Cụm nút công cụ trên camera (ĐÈN FLASH + ĐỔI CAMERA) -->
         <div class="absolute top-3 right-3 flex space-x-2 z-10">
           <!-- NÚT ĐÈN FLASH / ĐÈN PIN -->
-          <button id="btnTorch" title="Bật/Tắt Đèn Flash" class="w-11 h-11 rounded-full bg-black/70 backdrop-blur hover:bg-black/90 text-white flex items-center justify-center transition border border-white/20 active:scale-95 shadow-lg">
+          <button id="btnTorch" title="Bật/Tắt Đèn Chiếu Sáng" class="w-11 h-11 rounded-full bg-black/70 backdrop-blur hover:bg-black/90 text-white flex items-center justify-center transition border border-white/20 active:scale-95 shadow-lg">
             <i id="torchIcon" class="ph-bold ph-flashlight text-xl"></i>
           </button>
 
@@ -112,54 +129,32 @@
         </div>
       </div>
 
-      <!-- Tùy chọn nâng cao chất lượng ảnh -->
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
-        <div class="flex items-center space-x-2.5">
-          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg">
-            <i class="ph-bold ph-magic-wand"></i>
-          </div>
-          <div>
-            <p class="text-xs font-semibold text-white">Làm nét & Khử bóng mờ (Tăng chính xác)</p>
-            <p class="text-[11px] text-slate-400">Tự động tăng tương phản, lọc chữ đen nền trắng</p>
-          </div>
-        </div>
-        <!-- Toggle Switch -->
-        <label class="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" id="toggleEnhance" checked class="sr-only peer">
-          <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-        </label>
-      </div>
-
       <!-- Các nút thao tác chụp và chọn ảnh -->
       <div class="grid grid-cols-2 gap-3">
         <!-- Nút Chụp Ảnh Ngay -->
-        <button id="btnCapture" class="col-span-2 py-4 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.99] font-bold text-white shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2.5 transition text-base">
+        <button id="btnCapture" class="col-span-2 py-4 px-4 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:opacity-95 active:scale-[0.99] font-bold text-white shadow-xl shadow-indigo-600/30 flex items-center justify-center space-x-2.5 transition text-base">
           <i class="ph-bold ph-aperture text-2xl"></i>
-          <span>Chụp Ảnh Ngay</span>
+          <span>Chụp & Đọc Chữ Ngay</span>
         </button>
 
         <!-- Tải ảnh có sẵn từ máy -->
-        <label class="cursor-pointer py-3 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] border border-slate-800 flex items-center justify-center space-x-2 text-slate-200 transition text-xs sm:text-sm font-medium">
-          <i class="ph-bold ph-image text-xl text-emerald-400"></i>
+        <label class="cursor-pointer py-3.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] border border-slate-800 flex items-center justify-center space-x-2 text-slate-200 transition text-xs sm:text-sm font-medium">
+          <i class="ph-bold ph-image text-xl text-blue-400"></i>
           <span>Chọn ảnh từ máy</span>
           <input type="file" id="fileInput" accept="image/*" class="hidden" />
         </label>
 
         <!-- Dán ảnh từ bộ nhớ tạm (Clipboard) -->
-        <button id="btnPaste" class="py-3 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] border border-slate-800 flex items-center justify-center space-x-2 text-slate-200 transition text-xs sm:text-sm font-medium">
-          <i class="ph-bold ph-clipboard-text text-xl text-teal-400"></i>
+        <button id="btnPaste" class="py-3.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] border border-slate-800 flex items-center justify-center space-x-2 text-slate-200 transition text-xs sm:text-sm font-medium">
+          <i class="ph-bold ph-clipboard-text text-xl text-indigo-400"></i>
           <span>Dán ảnh (Ctrl+V)</span>
         </button>
       </div>
 
-      <!-- Mẹo chống bị lỗi chữ -->
-      <div class="bg-slate-900/50 border border-slate-800/80 rounded-xl p-3 text-xs text-slate-400 space-y-1">
-        <p class="text-emerald-400 font-semibold flex items-center space-x-1">
-          <i class="ph-fill ph-check-circle"></i>
-          <span>Bí quyết để quét không bị lỗi:</span>
-        </p>
-        <p>1. <b>Bật nút Đèn</b> (góc trên camera) nếu nơi chụp bị tối hoặc thiếu sáng.</p>
-        <p>2. Đặt chữ <b>ngay ngắn vào giữa khung xanh</b>, tránh để camera bị rung tay.</p>
+      <!-- Thông tin sức mạnh AI -->
+      <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-xs text-slate-400 flex items-start space-x-2.5">
+        <i class="ph-fill ph-check-circle text-emerald-400 text-lg mt-0.5 shrink-0"></i>
+        <span><b>Ưu điểm của AI:</b> Đọc hiểu chính xác tiếng Việt có dấu, sửa sạch lỗi sai, đọc được cả chữ viết tay, bảng số liệu và hóa đơn mờ mà không bao giờ bị ra chữ vô nghĩa!</span>
       </div>
     </section>
 
@@ -173,38 +168,35 @@
           <span>Chụp ảnh khác</span>
         </button>
         <span class="text-xs text-emerald-400 font-semibold flex items-center space-x-1.5 bg-emerald-950/60 border border-emerald-800/50 px-2.5 py-1 rounded-full">
-          <i class="ph-fill ph-check-circle"></i>
-          <span>Đã lọc sạch & lấy chữ!</span>
+          <i class="ph-fill ph-sparkle"></i>
+          <span>AI đã đọc chữ hoàn tất!</span>
         </span>
       </div>
 
-      <!-- So sánh ảnh vừa chụp & ảnh đã xử lý nét -->
+      <!-- Ảnh vừa chụp -->
       <div class="bg-slate-900 rounded-xl border border-slate-800 p-2.5 flex items-center space-x-3">
         <img id="resultImagePreview" src="" alt="Ảnh nguồn" class="w-16 h-16 object-cover rounded-lg border border-slate-700 cursor-pointer shadow hover:opacity-85 transition" title="Bấm để xem ảnh phóng to" />
         <div class="flex-1 min-w-0">
-          <p class="text-xs font-semibold text-white">Ảnh đã được tối ưu hóa nét chữ</p>
+          <p class="text-xs font-semibold text-white">Ảnh bạn đã cung cấp</p>
           <p class="text-[11px] text-slate-400 truncate mt-0.5">Bấm vào ảnh để phóng to kiểm tra</p>
-          <button id="btnReOcr" class="mt-1 text-xs text-emerald-400 hover:text-emerald-300 font-medium flex items-center space-x-1">
+          <button id="btnReOcr" class="mt-1 text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center space-x-1">
             <i class="ph-bold ph-arrows-clockwise"></i>
-            <span>Quét lại ảnh này</span>
+            <span>Nhờ AI đọc lại ảnh này</span>
           </button>
         </div>
       </div>
 
       <!-- Khung hiển thị nội dung chữ -->
-      <div class="flex-1 flex flex-col min-h-[280px] bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+      <div class="flex-1 flex flex-col min-h-[300px] bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
         <div class="px-4 py-2.5 bg-slate-800/90 border-b border-slate-700/80 flex items-center justify-between">
           <span class="text-xs font-semibold text-slate-200 flex items-center space-x-1.5">
-            <i class="ph-bold ph-file-text text-emerald-400"></i>
-            <span>Nội dung đã bóc tách (<span id="charCount" class="text-emerald-400 font-bold">0</span> chữ)</span>
+            <i class="ph-bold ph-file-text text-indigo-400"></i>
+            <span>Văn bản trích xuất (<span id="charCount" class="text-indigo-400 font-bold">0</span> chữ)</span>
           </span>
           <div class="flex items-center space-x-1">
-            <button id="btnCleanText" title="Tự động lọc rác vụn vặt" class="px-2 py-1 rounded-lg text-slate-300 hover:text-emerald-400 hover:bg-slate-700 transition text-xs flex items-center space-x-1">
-              <i class="ph-bold ph-broom"></i>
-              <span>Lọc rác</span>
-            </button>
-            <button id="btnSpeak" title="Đọc to nội dung" class="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition text-sm">
+            <button id="btnSpeak" title="Đọc to nội dung" class="px-2.5 py-1 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition text-xs flex items-center space-x-1">
               <i class="ph-bold ph-speaker-high"></i>
+              <span>Đọc</span>
             </button>
             <button id="btnClearText" title="Xóa trắng khung" class="p-1.5 rounded-lg text-slate-300 hover:text-red-400 hover:bg-slate-700 transition text-sm">
               <i class="ph-bold ph-trash"></i>
@@ -218,14 +210,14 @@
       <!-- Các nút gửi / sao chép nội dung -->
       <div class="grid grid-cols-2 gap-3 pt-1">
         <!-- Nút Copy chính -->
-        <button id="btnCopyText" class="py-4 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.99] font-bold text-white shadow-lg shadow-emerald-500/25 flex items-center justify-center space-x-2 transition text-sm sm:text-base">
+        <button id="btnCopyText" class="py-4 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:scale-[0.99] font-bold text-white shadow-lg shadow-indigo-500/25 flex items-center justify-center space-x-2 transition text-sm sm:text-base">
           <i id="copyIcon" class="ph-bold ph-copy text-xl"></i>
           <span id="copyBtnText">Sao Chép Chữ Này</span>
         </button>
 
         <!-- Nút tải file văn bản .txt -->
         <button id="btnDownloadTxt" class="py-4 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 font-semibold text-slate-200 active:scale-[0.99] flex items-center justify-center space-x-2 transition text-sm sm:text-base">
-          <i class="ph-bold ph-download-simple text-xl text-teal-400"></i>
+          <i class="ph-bold ph-download-simple text-xl text-indigo-400"></i>
           <span>Lưu thành File (.txt)</span>
         </button>
       </div>
@@ -234,23 +226,61 @@
 
   </main>
 
+  <!-- ================= MODAL CÀI ĐẶT API KEY ================= -->
+  <div id="apiKeyModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-5 shadow-2xl relative">
+      <button id="btnCloseApiKeyModal" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i class="ph-bold ph-x text-xl"></i>
+      </button>
+
+      <div class="flex items-center space-x-2.5 mb-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-2xl">
+          <i class="ph-bold ph-key"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-white text-base">Cài đặt Google Gemini API Key</h3>
+          <p class="text-xs text-slate-400">Hoàn toàn MIỄN PHÍ để dùng AI đọc chữ siêu chuẩn</p>
+        </div>
+      </div>
+
+      <p class="text-xs text-slate-300 leading-relaxed mb-3">
+        Để AI đọc được chính xác 100% tiếng Việt từ ảnh, bạn chỉ cần nhập Google Gemini API Key một lần duy nhất (được lưu an toàn ngay trên máy của bạn).
+      </p>
+
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-slate-300 mb-1.5">Mã API Key của bạn:</label>
+        <input type="password" id="inputApiKey" placeholder="Dán mã AIzaSy... vào đây" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500" />
+      </div>
+
+      <div class="flex flex-col space-y-2">
+        <button id="btnSaveApiKey" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold text-white text-sm transition shadow-lg shadow-indigo-600/25">
+          Lưu & Bắt đầu dùng AI
+        </button>
+
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700/80 text-center font-medium text-xs text-amber-300 border border-slate-700 transition flex items-center justify-center space-x-1">
+          <i class="ph-bold ph-arrow-square-out"></i>
+          <span>Lấy mã Key miễn phí từ Google (Chỉ mất 30 giây)</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= MÀN HÌNH CHỜ QUÉT ẢNH (TIẾN TRÌNH NHẬN DIỆN) ================= -->
   <div id="loadingOverlay" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex flex-col items-center justify-center p-6 text-center">
     <div class="relative w-20 h-20 mb-6">
-      <div class="absolute inset-0 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center overflow-hidden">
-        <i class="ph-duotone ph-scan text-4xl text-emerald-400"></i>
+      <div class="absolute inset-0 rounded-2xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center overflow-hidden">
+        <i class="ph-duotone ph-sparkle text-4xl text-indigo-400"></i>
         <div class="scanner-line"></div>
       </div>
     </div>
 
-    <h3 id="ocrStatusText" class="text-lg font-bold text-slate-100 mb-1">Đang xử lý & đọc chữ từ ảnh...</h3>
-    <p class="text-xs text-slate-400 max-w-xs mb-4">Hệ thống đang tăng độ nét và phân tích từ ngữ tiếng Việt chuẩn xác</p>
+    <h3 id="ocrStatusText" class="text-lg font-bold text-slate-100 mb-1">AI đang đọc & phân tích chữ...</h3>
+    <p id="ocrSubText" class="text-xs text-slate-400 max-w-xs mb-4">Mô hình AI đang bóc tách từng từ ngữ tiếng Việt có dấu chuẩn xác</p>
 
     <!-- Thanh tiến trình % -->
     <div class="w-64 bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700">
-      <div id="ocrProgressBar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-200" style="width: 0%"></div>
+      <div id="ocrProgressBar" class="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 transition-all duration-300" style="width: 30%"></div>
     </div>
-    <span id="ocrProgressNumber" class="text-xs font-mono text-emerald-400 mt-2 font-bold">0%</span>
   </div>
 
   <!-- Thông báo nổi (Toast) -->
@@ -276,9 +306,8 @@
     let isTorchOn = false;
     let currentProcessedBlob = null;
     let currentImageObjectUrl = null;
+    let useAiMode = true; // Mặc định dùng AI Vision
     let cachedWorker = null;
-    let cachedWorkerLang = null;
-    let isWorkerInitializing = false;
 
     // Các phần tử DOM
     const video = document.getElementById('cameraVideo');
@@ -291,8 +320,9 @@
     const btnRetryCamera = document.getElementById('btnRetryCamera');
     const fileInput = document.getElementById('fileInput');
     const btnPaste = document.getElementById('btnPaste');
-    const toggleEnhance = document.getElementById('toggleEnhance');
-    const cropGuideBox = document.getElementById('cropGuideBox');
+
+    const modeAi = document.getElementById('modeAi');
+    const modeOffline = document.getElementById('modeOffline');
 
     const captureScreen = document.getElementById('captureScreen');
     const resultScreen = document.getElementById('resultScreen');
@@ -306,14 +336,12 @@
     const btnDownloadTxt = document.getElementById('btnDownloadTxt');
     const btnSpeak = document.getElementById('btnSpeak');
     const btnClearText = document.getElementById('btnClearText');
-    const btnCleanText = document.getElementById('btnCleanText');
     const btnReOcr = document.getElementById('btnReOcr');
 
     const loadingOverlay = document.getElementById('loadingOverlay');
     const ocrStatusText = document.getElementById('ocrStatusText');
+    const ocrSubText = document.getElementById('ocrSubText');
     const ocrProgressBar = document.getElementById('ocrProgressBar');
-    const ocrProgressNumber = document.getElementById('ocrProgressNumber');
-    const ocrLang = document.getElementById('ocrLang');
 
     const toast = document.getElementById('toast');
     const toastMsg = document.getElementById('toastMsg');
@@ -323,7 +351,67 @@
     const modalImg = document.getElementById('modalImg');
     const btnCloseModal = document.getElementById('btnCloseModal');
 
-    // Hàm hiển thị thông báo
+    // Modal API Key
+    const apiKeyModal = document.getElementById('apiKeyModal');
+    const btnOpenApiKeyModal = document.getElementById('btnOpenApiKeyModal');
+    const btnCloseApiKeyModal = document.getElementById('btnCloseApiKeyModal');
+    const btnSaveApiKey = document.getElementById('btnSaveApiKey');
+    const inputApiKey = document.getElementById('inputApiKey');
+    const apiKeyStatusText = document.getElementById('apiKeyStatusText');
+
+    // Quản lý API Key (Lưu an toàn trong trình duyệt của người dùng, không lộ trên GitHub)
+    function getStoredApiKey() {
+      return localStorage.getItem('gemini_api_key') || '';
+    }
+
+    function updateApiKeyBadge() {
+      const key = getStoredApiKey();
+      if (key) {
+        apiKeyStatusText.textContent = 'AI Sẵn Sàng ✓';
+        apiKeyStatusText.className = 'text-emerald-400 font-semibold';
+      } else {
+        apiKeyStatusText.textContent = 'Nhập Key AI';
+        apiKeyStatusText.className = 'text-amber-400 font-medium';
+      }
+    }
+
+    btnOpenApiKeyModal.addEventListener('click', () => {
+      inputApiKey.value = getStoredApiKey();
+      apiKeyModal.classList.remove('hidden');
+    });
+
+    btnCloseApiKeyModal.addEventListener('click', () => {
+      apiKeyModal.classList.add('hidden');
+    });
+
+    btnSaveApiKey.addEventListener('click', () => {
+      const key = inputApiKey.value.trim();
+      if (!key) {
+        showToast('Vui lòng dán mã API Key!', true);
+        return;
+      }
+      localStorage.setItem('gemini_api_key', key);
+      updateApiKeyBadge();
+      apiKeyModal.classList.add('hidden');
+      showToast('Đã lưu mã AI Key thành công!');
+    });
+
+    // Chuyển đổi qua lại giữa AI và Offline
+    modeAi.addEventListener('click', () => {
+      useAiMode = true;
+      modeAi.className = 'px-3 py-1 rounded-md bg-indigo-600 text-white font-bold transition flex items-center space-x-1 shadow';
+      modeOffline.className = 'px-3 py-1 rounded-md text-slate-400 hover:text-white transition flex items-center space-x-1';
+      showToast('Đã kích hoạt chế độ Siêu AI (Chuẩn 100%)');
+    });
+
+    modeOffline.addEventListener('click', () => {
+      useAiMode = false;
+      modeOffline.className = 'px-3 py-1 rounded-md bg-slate-700 text-white font-bold transition flex items-center space-x-1 shadow';
+      modeAi.className = 'px-3 py-1 rounded-md text-slate-400 hover:text-white transition flex items-center space-x-1';
+      showToast('Đã chuyển sang chế độ quét Offline (Tesseract)');
+    });
+
+    // Hàm thông báo Toast
     function showToast(message, isError = false) {
       toastMsg.textContent = message;
       if (isError) {
@@ -337,7 +425,7 @@
       }, 2500);
     }
 
-    // 1. Khởi động Camera chất lượng cao (HD 1080p nếu có)
+    // 1. Khởi động Camera HD
     async function startCamera(facingMode = 'environment') {
       stopCamera();
       currentFacingMode = facingMode;
@@ -348,8 +436,7 @@
         video: {
           facingMode: { ideal: facingMode },
           width: { ideal: 1920, min: 1280 },
-          height: { ideal: 1080, min: 720 },
-          focusMode: { ideal: 'continuous' }
+          height: { ideal: 1080, min: 720 }
         },
         audio: false
       };
@@ -377,7 +464,7 @@
       }
     }
 
-    // 2. Chức năng NÚT ĐÈN PIN / ĐÈN FLASH
+    // 2. Chức năng NÚT ĐÈN FLASH
     async function toggleTorch() {
       if (!videoStream) {
         showToast('Chưa mở camera!', true);
@@ -388,7 +475,6 @@
 
       const capabilities = track.getCapabilities ? track.getCapabilities() : {};
       
-      // Kiểm tra xem camera có đèn flash vật lý không (thường có trên điện thoại)
       if ('torch' in capabilities) {
         try {
           isTorchOn = !isTorchOn;
@@ -398,11 +484,9 @@
           updateTorchUI(isTorchOn);
           showToast(isTorchOn ? 'Đã bật đèn Flash!' : 'Đã tắt đèn Flash');
         } catch (err) {
-          console.warn('Lỗi bật flash phần cứng:', err);
           fallbackScreenTorch();
         }
       } else {
-        // Fallback: Nếu là laptop hoặc webcam không có đèn pin vật lý -> Dùng đèn trợ sáng màn hình
         fallbackScreenTorch();
       }
     }
@@ -412,7 +496,7 @@
       updateTorchUI(isTorchOn);
       if (isTorchOn) {
         screenTorchOverlay.style.opacity = '0.9';
-        showToast('Đang bật đèn trợ sáng màn hình (Laptop/Webcam)!');
+        showToast('Đang bật đèn trợ sáng màn hình!');
       } else {
         screenTorchOverlay.style.opacity = '0';
         showToast('Đã tắt đèn trợ sáng');
@@ -432,7 +516,6 @@
 
     btnTorch.addEventListener('click', toggleTorch);
 
-    // Đổi camera trước / sau
     btnSwitchCamera.addEventListener('click', () => {
       const newMode = currentFacingMode === 'environment' ? 'user' : 'environment';
       startCamera(newMode);
@@ -442,49 +525,156 @@
       startCamera(currentFacingMode);
     });
 
-    // 3. THUẬT TOÁN TIỀN XỬ LÝ ẢNH (Làm nét chữ, khử bóng, tăng tương phản)
-    // Giúp Tesseract nhận diện chuẩn tiếng Việt gấp 5 lần so với ảnh thô
-    function enhanceImageCanvas(sourceCanvas, shouldEnhance = true) {
-      if (!shouldEnhance) return sourceCanvas;
-
-      const ctx = sourceCanvas.getContext('2d');
-      const imgData = ctx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
-      const data = imgData.data;
-
-      // 1. Chuyển sang ảnh đơn sắc Grayscale & Tính độ sáng trung bình
-      let totalLum = 0;
-      const count = data.length / 4;
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-        data[i] = data[i + 1] = data[i + 2] = lum;
-        totalLum += lum;
-      }
-
-      const avgLum = totalLum / count;
-      // Ngưỡng binarization linh hoạt theo độ sáng ảnh
-      const threshold = Math.min(Math.max(avgLum, 105), 150);
-
-      // 2. Tăng tương phản cao (High Contrast Stretch) làm chữ đen đậm nổi bật trên nền trắng
-      for (let i = 0; i < data.length; i += 4) {
-        let lum = data[i];
-        if (lum < threshold) {
-          // Làm chữ đen đậm hơn
-          lum = Math.max(0, lum * 0.5);
-        } else {
-          // Làm nền sáng trắng hơn
-          lum = Math.min(255, lum * 1.25);
-        }
-        data[i] = data[i + 1] = data[i + 2] = lum;
-      }
-
-      ctx.putImageData(imgData, 0, 0);
-      return sourceCanvas;
+    // Chuyển Blob thành Base64
+    function blobToBase64(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64String = reader.result.split(',')[1];
+          resolve(base64String);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
     }
 
-    // 4. LẤY ẢNH TỪ CAMERA (Chỉ cắt lấy vùng bên trong khung ngắm để không dính rác)
+    // 3. GỌI GOOGLE GEMINI VISION AI ĐỂ BÓC TÁCH CHỮ CHUẨN 100%
+    async function processWithGeminiAI(blob) {
+      const apiKey = getStoredApiKey();
+      if (!apiKey) {
+        loadingOverlay.classList.add('hidden');
+        apiKeyModal.classList.remove('hidden');
+        showToast('Vui lòng nhập Google Gemini API Key để dùng AI!', true);
+        return null;
+      }
+
+      ocrStatusText.textContent = 'AI đang đọc nội dung ảnh...';
+      ocrSubText.textContent = 'Mắt thần AI đang trích xuất từng từ ngữ tiếng Việt chuẩn xác';
+      ocrProgressBar.style.width = '65%';
+
+      const base64Data = await blobToBase64(blob);
+
+      const promptText = `Hãy trích xuất chính xác 100% toàn bộ nội dung văn bản (chữ tiếng Việt có dấu, tiếng Anh, số, bảng biểu nếu có) có trong bức ảnh này.
+Yêu cầu bắt buộc:
+1. Đọc đúng tuyệt đối chính tả tiếng Việt có dấu, sửa các lỗi chính tả rõ ràng do góc chụp mờ.
+2. Giữ nguyên định dạng xuống dòng của các câu và đoạn văn bản.
+3. Chỉ trả về duy nhất nội dung văn bản đã bóc tách, KHÔNG thêm bất kỳ lời chào hay giải thích nào khác.`;
+
+      const payload = {
+        contents: [
+          {
+            parts: [
+              { text: promptText },
+              {
+                inline_data: {
+                  mime_type: "image/jpeg",
+                  data: base64Data
+                }
+              }
+            ]
+          }
+        ]
+      };
+
+      // Thử gọi gemini-2.0-flash hoặc gemini-1.5-flash
+      const models = ['gemini-2.0-flash', 'gemini-1.5-flash'];
+      let lastError = null;
+
+      for (const model of models) {
+        try {
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': apiKey
+            },
+            body: JSON.stringify(payload)
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            const extractedText = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+            return extractedText;
+          } else {
+            const errData = await response.json().catch(() => ({}));
+            lastError = errData.error?.message || `Lỗi HTTP ${response.status}`;
+          }
+        } catch (e) {
+          lastError = e.message;
+        }
+      }
+
+      throw new Error('Lỗi kết nối AI: ' + lastError);
+    }
+
+    // 4. CHẾ ĐỘ QUÉT OFFLINE BẰNG TESSERACT (Dự phòng)
+    async function processWithOfflineTesseract(blob) {
+      ocrStatusText.textContent = 'Đang quét bằng bộ máy Offline...';
+      ocrSubText.textContent = 'Phân tích điểm ảnh cục bộ';
+      ocrProgressBar.style.width = '50%';
+
+      if (!cachedWorker) {
+        cachedWorker = await Tesseract.createWorker('vie+eng', 1);
+        await cachedWorker.setParameters({
+          tessedit_pageseg_mode: Tesseract.PSM.AUTO,
+        });
+      }
+
+      const ret = await cachedWorker.recognize(blob);
+      return ret.data.text.trim();
+    }
+
+    // 5. ĐIỀU PHỐI TIẾN TRÌNH XỬ LÝ ẢNH
+    async function processImage(blob) {
+      currentProcessedBlob = blob;
+      if (currentImageObjectUrl) {
+        URL.revokeObjectURL(currentImageObjectUrl);
+      }
+      currentImageObjectUrl = URL.createObjectURL(blob);
+      resultImagePreview.src = currentImageObjectUrl;
+      modalImg.src = currentImageObjectUrl;
+
+      loadingOverlay.classList.remove('hidden');
+      ocrProgressBar.style.width = '20%';
+
+      try {
+        let finalText = '';
+
+        if (useAiMode) {
+          finalText = await processWithGeminiAI(blob);
+          if (finalText === null) {
+            // Đã hiển thị modal yêu cầu nhập key
+            return;
+          }
+        } else {
+          finalText = await processWithOfflineTesseract(blob);
+        }
+
+        ocrProgressBar.style.width = '100%';
+
+        // Chuyển sang Giao diện 2
+        captureScreen.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+
+        resultTextArea.value = finalText;
+        updateCharCount();
+
+        if (finalText.length > 0) {
+          showToast('AI đã đọc chữ hoàn tất!');
+        } else {
+          showToast('Không tìm thấy dòng chữ nào trong ảnh!', true);
+        }
+
+      } catch (err) {
+        console.error('Lỗi khi đọc ảnh:', err);
+        showToast(err.message || 'Đã có lỗi xảy ra!', true);
+      } finally {
+        loadingOverlay.classList.add('hidden');
+      }
+    }
+
+    // Chụp ảnh từ camera
     btnCapture.addEventListener('click', () => {
       if (!videoStream || video.videoWidth === 0) {
         showToast('Camera chưa sẵn sàng, vui lòng đợi giây lát!', true);
@@ -495,9 +685,9 @@
       const vw = video.videoWidth;
       const vh = video.videoHeight;
 
-      // Lấy 80% phần trung tâm (vùng ngắm chụp)
-      const cropW = Math.round(vw * 0.85);
-      const cropH = Math.round(vh * 0.75);
+      // Cắt 85% khung trung tâm
+      const cropW = Math.round(vw * 0.88);
+      const cropH = Math.round(vh * 0.80);
       const cropX = Math.round((vw - cropW) / 2);
       const cropY = Math.round((vh - cropH) / 2);
 
@@ -506,25 +696,21 @@
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
 
-      // Áp dụng bộ lọc làm rõ nét chữ
-      const shouldEnhance = toggleEnhance.checked;
-      enhanceImageCanvas(canvas, shouldEnhance);
-
       canvas.toBlob(blob => {
         processImage(blob);
       }, 'image/jpeg', 0.95);
     });
 
-    // 5. Chọn file ảnh từ máy
+    // Chọn file ảnh từ máy
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
-        preprocessAndProcessFile(file);
+        resizeAndProcessFile(file);
       }
       e.target.value = '';
     });
 
-    // 6. Dán ảnh từ Clipboard (Ctrl+V)
+    // Dán ảnh từ Clipboard (Ctrl+V)
     async function readClipboardImage() {
       try {
         const items = await navigator.clipboard.read();
@@ -532,7 +718,7 @@
           const imageType = item.types.find(t => t.startsWith('image/'));
           if (imageType) {
             const blob = await item.getType(imageType);
-            preprocessAndProcessFile(blob);
+            resizeAndProcessFile(blob);
             return;
           }
         }
@@ -549,21 +735,19 @@
       for (const item of items) {
         if (item.type.indexOf('image') !== -1) {
           const blob = item.getAsFile();
-          preprocessAndProcessFile(blob);
+          resizeAndProcessFile(blob);
           break;
         }
       }
     });
 
-    function preprocessAndProcessFile(blob) {
+    function resizeAndProcessFile(blob) {
       const img = new Image();
       img.onload = () => {
         const canvas = document.getElementById('processCanvas');
-        
-        // Tối ưu kích thước ảnh: Giới hạn tối đa 1400px giúp tốc độ quét nhanh gấp 10 lần
         let w = img.width;
         let h = img.height;
-        const MAX_DIM = 1400;
+        const MAX_DIM = 1600;
         if (w > MAX_DIM || h > MAX_DIM) {
           if (w > h) {
             h = Math.round((h * MAX_DIM) / w);
@@ -579,128 +763,20 @@
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, w, h);
 
-        if (toggleEnhance.checked) {
-          enhanceImageCanvas(canvas, true);
-        }
-
-        canvas.toBlob(enhancedBlob => {
-          processImage(enhancedBlob);
-        }, 'image/jpeg', 0.92);
+        canvas.toBlob(optimizedBlob => {
+          processImage(optimizedBlob);
+        }, 'image/jpeg', 0.95);
       };
       img.src = URL.createObjectURL(blob);
     }
 
-    // 7. LÀM SẠCH KÝ TỰ RÁC (Post-processing text cleaner)
-    // Loại bỏ những ký tự vô nghĩa như ~ | _ • ° khi Tesseract quét nhầm
-    function cleanGarbageText(rawText) {
-      if (!rawText) return '';
-      return rawText
-        .split('\n')
-        .map(line => {
-          let cleaned = line.trim();
-          if (/^[\W_~|•·–—=]+$/.test(cleaned) && cleaned.length < 4) {
-            return '';
-          }
-          return cleaned.replace(/[ \t]{2,}/g, ' ');
-        })
-        .filter(line => line.length > 0)
-        .join('\n');
-    }
-
-    // Khởi tạo và TÁI SỬ DỤNG bộ máy OCR (Không hủy rồi tạo lại giúp quét siêu tốc)
-    async function getOcrWorker(lang) {
-      if (cachedWorker && cachedWorkerLang === lang) {
-        return cachedWorker;
-      }
-      if (cachedWorker) {
-        try { await cachedWorker.terminate(); } catch (e) {}
-        cachedWorker = null;
-      }
-
-      cachedWorkerLang = lang;
-      cachedWorker = await Tesseract.createWorker(lang, 1, {
-        logger: m => {
-          if (m.status === 'recognizing text') {
-            const progress = Math.round((m.progress || 0) * 100);
-            ocrProgressBar.style.width = progress + '%';
-            ocrProgressNumber.textContent = progress + '%';
-            ocrStatusText.textContent = 'Đang phân tích chữ chuẩn xác (' + progress + '%)...';
-          } else if (m.status.includes('loading')) {
-            ocrStatusText.textContent = 'Đang chuẩn bị bộ nhận dạng...';
-          }
-        }
-      });
-
-      await cachedWorker.setParameters({
-        tessedit_pageseg_mode: Tesseract.PSM.AUTO,
-      });
-
-      return cachedWorker;
-    }
-
-    // 8. TIẾN TRÌNH NHẬN DIỆN VĂN BẢN (OCR SIÊU TỐC)
-    async function processImage(blob) {
-      currentProcessedBlob = blob;
-      if (currentImageObjectUrl) {
-        URL.revokeObjectURL(currentImageObjectUrl);
-      }
-      currentImageObjectUrl = URL.createObjectURL(blob);
-      resultImagePreview.src = currentImageObjectUrl;
-      modalImg.src = currentImageObjectUrl;
-
-      // Hiện màn hình loading
-      loadingOverlay.classList.remove('hidden');
-      ocrProgressBar.style.width = '0%';
-      ocrProgressNumber.textContent = '0%';
-      ocrStatusText.textContent = 'Đang đọc chữ siêu tốc...';
-
-      const selectedLang = ocrLang.value || 'vie+eng';
-
-      try {
-        const worker = await getOcrWorker(selectedLang);
-
-        const ret = await worker.recognize(blob);
-        const rawText = ret.data.text || '';
-
-        // Lọc rác văn bản
-        const finalText = cleanGarbageText(rawText);
-
-        // Chuyển sang Giao diện 2
-        captureScreen.classList.add('hidden');
-        resultScreen.classList.remove('hidden');
-
-        resultTextArea.value = finalText;
-        updateCharCount();
-
-        if (finalText.length > 0) {
-          showToast('Đã trích xuất xong nội dung!');
-        } else {
-          showToast('Chưa tìm thấy chữ rõ ràng, hãy bật đèn hoặc ngắm gần lại!', true);
-        }
-
-      } catch (err) {
-        console.error('Lỗi nhận dạng:', err);
-        showToast('Có lỗi xảy ra: ' + (err.message || err), true);
-      } finally {
-        loadingOverlay.classList.add('hidden');
-      }
-    }
-
-    // 9. Cập nhật số ký tự
+    // Cập nhật số ký tự
     function updateCharCount() {
       charCount.textContent = resultTextArea.value.length;
     }
     resultTextArea.addEventListener('input', updateCharCount);
 
-    // 10. Nút Lọc rác thủ công
-    btnCleanText.addEventListener('click', () => {
-      const cleaned = cleanGarbageText(resultTextArea.value);
-      resultTextArea.value = cleaned;
-      updateCharCount();
-      showToast('Đã lọc sạch các ký tự vụn rác!');
-    });
-
-    // 11. Nút quay lại Giao diện 1
+    // Nút quay lại Giao diện 1
     btnBackToCapture.addEventListener('click', () => {
       resultScreen.classList.add('hidden');
       captureScreen.classList.remove('hidden');
@@ -709,14 +785,14 @@
       }
     });
 
-    // 12. Quét lại ảnh hiện tại
+    // Quét lại ảnh hiện tại
     btnReOcr.addEventListener('click', () => {
       if (currentProcessedBlob) {
         processImage(currentProcessedBlob);
       }
     });
 
-    // 13. Nút Sao Chép Nội Dung
+    // Nút Sao Chép Nội Dung
     btnCopyText.addEventListener('click', async () => {
       const text = resultTextArea.value;
       if (!text) {
@@ -740,7 +816,7 @@
       }
     });
 
-    // 14. Tải file .txt về máy
+    // Tải file .txt về máy
     btnDownloadTxt.addEventListener('click', () => {
       const text = resultTextArea.value;
       if (!text) {
@@ -750,13 +826,13 @@
       const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `van_ban_ocr_${new Date().toISOString().slice(0,10)}_${Date.now().toString().slice(-4)}.txt`;
+      a.download = `van_ban_ai_${new Date().toISOString().slice(0,10)}_${Date.now().toString().slice(-4)}.txt`;
       a.click();
       URL.revokeObjectURL(a.href);
       showToast('Đã tải file văn bản về máy!');
     });
 
-    // 15. Đọc văn bản bằng giọng nói
+    // Đọc văn bản bằng giọng nói
     btnSpeak.addEventListener('click', () => {
       const text = resultTextArea.value;
       if (!text) return;
@@ -771,7 +847,7 @@
       }
     });
 
-    // 16. Xóa khung văn bản
+    // Xóa khung văn bản
     btnClearText.addEventListener('click', () => {
       if (confirm('Bạn có muốn xóa toàn bộ chữ trong khung không?')) {
         resultTextArea.value = '';
@@ -779,7 +855,7 @@
       }
     });
 
-    // 17. Mở xem ảnh phóng to
+    // Mở xem ảnh phóng to
     resultImagePreview.addEventListener('click', () => {
       imageModal.classList.remove('hidden');
     });
@@ -792,17 +868,10 @@
       }
     });
 
-    ocrLang.addEventListener('change', () => {
-      getOcrWorker(ocrLang.value).catch(e => console.log(e));
-    });
-
-    // Khởi động camera và nạp sẵn bộ máy nhận diện chạy ngầm để quét tức thì
+    // Khởi động
     window.addEventListener('DOMContentLoaded', () => {
+      updateApiKeyBadge();
       startCamera();
-      // Khởi động trước bộ nhận diện trong nền để khi bấm lấy chữ là chạy ngay trong 1-2s
-      setTimeout(() => {
-        getOcrWorker(ocrLang.value || 'vie+eng').catch(e => console.log('Khởi động nền:', e));
-      }, 1000);
     });
   </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>SnapText AI - Giải Bài Tập Siêu Tốc (Hiệu Ứng Tuôn Chữ Streaming)</title>
+  <title>SnapText AI - Giải Bài Tập Siêu Tốc (Tự Động Đổi Server Dự Phòng)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Marked.js để render markdown bài tập -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -71,9 +71,9 @@
         <div>
           <div class="flex items-center space-x-1.5">
             <h1 class="font-bold text-base sm:text-lg leading-tight text-white">SnapText AI</h1>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-emerald-500 to-teal-500 text-white uppercase tracking-wider">Stream Real-time</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-emerald-500 to-teal-500 text-white uppercase tracking-wider">Auto Server</span>
           </div>
-          <p class="text-xs text-slate-400">Chữ tuôn ra tức thì trong 0.5s như Chatbox AI</p>
+          <p class="text-xs text-slate-400">Tự động chống nghẽn server • Giải bài tập trong 0.5s</p>
         </div>
       </div>
 
@@ -132,7 +132,7 @@
             </span>
           </div>
           <div class="text-right">
-            <span class="text-[11px] text-slate-300 bg-black/70 px-2.5 py-1 rounded-md">Gemini 3.8 Flash Stream</span>
+            <span id="serverIndicator" class="text-[11px] text-slate-300 bg-black/70 px-2.5 py-1 rounded-md">Server: Auto Failover</span>
           </div>
         </div>
 
@@ -186,7 +186,7 @@
         <img id="resultImagePreview" src="" alt="Đề bài" class="w-16 h-16 object-cover rounded-lg border border-slate-700 cursor-pointer shadow hover:opacity-85 transition" title="Bấm để xem ảnh lớn" />
         <div class="flex-1 min-w-0">
           <p class="text-xs font-semibold text-white">Ảnh đề bài vừa gửi</p>
-          <p class="text-[11px] text-slate-400 truncate mt-0.5">Nhấp vào ảnh để xem kích thước lớn</p>
+          <p id="activeModelLabel" class="text-[11px] text-slate-400 truncate mt-0.5">Model: Đang kết nối...</p>
           <button id="btnReOcr" class="mt-1 text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center space-x-1">
             <i class="ph-bold ph-arrows-clockwise"></i>
             <span>Giải lại bài này</span>
@@ -208,7 +208,7 @@
         </div>
 
         <div id="solutionRendered" class="flex-1 p-5 overflow-y-auto text-slate-100 text-sm sm:text-base leading-relaxed prose-ai typing-cursor">
-          <p class="text-slate-400 italic">Đang kết nối đến Gemini 3.8 Flash...</p>
+          <p class="text-purple-300 italic animate-pulse">⚡ Đang kết nối Mắt thần Gemini...</p>
         </div>
       </div>
 
@@ -242,7 +242,7 @@
         </div>
         <div>
           <h3 class="font-bold text-white text-base">Cài đặt Gemini API Key</h3>
-          <p class="text-xs text-slate-400">Tự động kích hoạt Gemini 3.8 Flash Stream 0.5s</p>
+          <p class="text-xs text-slate-400">Tự động kích hoạt Gemini Stream với server dự phòng</p>
         </div>
       </div>
 
@@ -302,6 +302,7 @@
     const resultScreen = document.getElementById('resultScreen');
     const btnBackToCapture = document.getElementById('btnBackToCapture');
     const resultImagePreview = document.getElementById('resultImagePreview');
+    const activeModelLabel = document.getElementById('activeModelLabel');
     const solutionRendered = document.getElementById('solutionRendered');
     const solutionTitle = document.getElementById('solutionTitle');
     const streamingStatusBadge = document.getElementById('streamingStatusBadge');
@@ -460,7 +461,7 @@
       });
     }
 
-    // ⚡ STREAMING REAL-TIME TUÔN CHỮ TỨC THÌ (GIỐNG CHATGPT / GEMINI CHAT)
+    // ⚡ STREAMING REAL-TIME CÓ SERVER DỰ PHÒNG TỰ ĐỘNG (AUTO-FAILOVER)
     async function streamGeminiAI(blob, mode = 'solve') {
       const apiKey = getStoredApiKey();
       if (!apiKey) {
@@ -469,15 +470,14 @@
         return;
       }
 
-      // CHUYỂN SANG MÀN HÌNH KẾT QUẢ NGAY LẬP TỨC (KHÔNG BẮT NGƯỜI DÙNG ĐỢI LOADING)
       captureScreen.classList.add('hidden');
       resultScreen.classList.remove('hidden');
 
       solutionTitle.textContent = mode === 'solve' ? 'Gia sư AI đang viết lời giải...' : 'AI đang bóc tách chữ...';
       solutionRendered.className = 'flex-1 p-5 overflow-y-auto text-slate-100 text-sm sm:text-base leading-relaxed prose-ai typing-cursor';
-      solutionRendered.innerHTML = '<p class="text-purple-300 italic animate-pulse">⚡ Đang kết nối Mắt thần Gemini 3.8 Flash...</p>';
+      solutionRendered.innerHTML = '<p class="text-purple-300 italic animate-pulse">⚡ Đang kết nối Mắt thần Gemini...</p>';
       streamingStatusBadge.className = 'text-xs text-amber-300 font-semibold flex items-center space-x-1.5 bg-purple-950/80 border border-purple-800/60 px-3 py-1.5 rounded-full';
-      streamingStatusText.textContent = 'AI đang viết lời giải...';
+      streamingStatusText.textContent = 'Đang bắt đầu...';
 
       const base64Data = await blobToBase64(blob);
 
@@ -514,74 +514,96 @@ In đậm kết quả chính.`;
         generationConfig: {
           temperature: 0.2,
           maxOutputTokens: 2048,
-          thinkingConfig: { thinkingBudget: 0 } // Tắt chờ đợi suy nghĩ
+          thinkingConfig: { thinkingBudget: 0 }
         }
       };
 
-      currentStreamedText = '';
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:streamGenerateContent?key=${apiKey}&alt=sse`;
+      // DANH SÁCH CÁC SERVER DỰ PHÒNG (NẾU 3.8 NGHẼN THÌ TỰ CHUYỂN SANG MODEL KHÁC TỨC THÌ)
+      const modelCandidates = [
+        'gemini-2.5-flash',
+        'gemini-2.0-flash',
+        'gemini-3.8-flash',
+        'gemini-2.5-pro'
+      ];
 
-      try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-          body: JSON.stringify(payload)
-        });
+      let lastError = null;
 
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.error?.message || `Lỗi HTTP ${response.status}`);
-        }
+      for (const model of modelCandidates) {
+        try {
+          activeModelLabel.textContent = `Đang kết nối: ${model}...`;
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${apiKey}&alt=sse`;
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder('utf-8');
-        let buffer = '';
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+            body: JSON.stringify(payload)
+          });
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            const errMsg = errData.error?.message || `HTTP ${response.status}`;
+            console.warn(`Model ${model} bị bận:`, errMsg);
+            lastError = errMsg;
+            continue; // Thử ngay model kế tiếp!
+          }
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop(); // giữ dòng cuối chưa trọn vẹn
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder('utf-8');
+          let buffer = '';
+          currentStreamedText = '';
+          activeModelLabel.textContent = `Model hoạt động: ${model} ✓`;
+          streamingStatusText.textContent = 'AI đang viết bài giải...';
 
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const jsonStr = line.slice(6).trim();
-              if (jsonStr && jsonStr !== '[DONE]') {
-                try {
-                  const data = JSON.parse(jsonStr);
-                  const chunk = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                  if (chunk) {
-                    currentStreamedText += chunk;
-                    if (typeof marked !== 'undefined') {
-                      solutionRendered.innerHTML = marked.parse(currentStreamedText);
-                    } else {
-                      solutionRendered.textContent = currentStreamedText;
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop();
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const jsonStr = line.slice(6).trim();
+                if (jsonStr && jsonStr !== '[DONE]') {
+                  try {
+                    const data = JSON.parse(jsonStr);
+                    const chunk = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                    if (chunk) {
+                      currentStreamedText += chunk;
+                      if (typeof marked !== 'undefined') {
+                        solutionRendered.innerHTML = marked.parse(currentStreamedText);
+                      } else {
+                        solutionRendered.textContent = currentStreamedText;
+                      }
+                      solutionRendered.scrollTop = solutionRendered.scrollHeight;
                     }
-                    // Tự động cuộn xuống theo dòng chữ
-                    solutionRendered.scrollTop = solutionRendered.scrollHeight;
-                  }
-                } catch (e) {}
+                  } catch (e) {}
+                }
               }
             }
           }
+
+          if (currentStreamedText.trim().length > 0) {
+            solutionRendered.className = 'flex-1 p-5 overflow-y-auto text-slate-100 text-sm sm:text-base leading-relaxed prose-ai';
+            solutionTitle.textContent = mode === 'solve' ? 'Lời giải chi tiết hoàn tất ✓' : 'Văn bản đã bóc tách ✓';
+            streamingStatusBadge.className = 'text-xs text-emerald-300 font-semibold flex items-center space-x-1.5 bg-emerald-950/80 border border-emerald-800/60 px-3 py-1.5 rounded-full';
+            streamingStatusText.textContent = 'Đã hoàn thành!';
+            showToast('Đã có kết quả!');
+            return; // Thành công mỹ mãn!
+          }
+
+        } catch (err) {
+          console.warn(`Lỗi khi gọi model ${model}:`, err);
+          lastError = err.message;
         }
-
-        // Hoàn tất Stream
-        solutionRendered.className = 'flex-1 p-5 overflow-y-auto text-slate-100 text-sm sm:text-base leading-relaxed prose-ai';
-        solutionTitle.textContent = mode === 'solve' ? 'Lời giải chi tiết hoàn tất ✓' : 'Văn bản đã bóc tách ✓';
-        streamingStatusBadge.className = 'text-xs text-emerald-300 font-semibold flex items-center space-x-1.5 bg-emerald-950/80 border border-emerald-800/60 px-3 py-1.5 rounded-full';
-        streamingStatusText.textContent = 'Đã hoàn thành!';
-        showToast('Đã có kết quả!');
-
-      } catch (err) {
-        console.error('Lỗi Stream:', err);
-        solutionRendered.className = 'flex-1 p-5 overflow-y-auto text-rose-300 text-sm';
-        solutionRendered.innerHTML = `<p class="font-bold">❌ Không thể giải bài tập:</p><p class="mt-1">${err.message}</p>`;
-        streamingStatusBadge.className = 'text-xs text-rose-300 font-semibold flex items-center space-x-1.5 bg-rose-950/80 border border-rose-800/60 px-3 py-1.5 rounded-full';
-        streamingStatusText.textContent = 'Gặp lỗi!';
       }
+
+      // Nếu tất cả server đều nghẽn
+      solutionRendered.className = 'flex-1 p-5 overflow-y-auto text-rose-300 text-sm';
+      solutionRendered.innerHTML = `<p class="font-bold">❌ Server AI đang quá tải:</p><p class="mt-1">${lastError}</p><p class="mt-2 text-xs text-slate-400">Vui lòng bấm nút "Giải lại bài này" sau vài giây nhé!</p>`;
+      streamingStatusBadge.className = 'text-xs text-rose-300 font-semibold flex items-center space-x-1.5 bg-rose-950/80 border border-rose-800/60 px-3 py-1.5 rounded-full';
+      streamingStatusText.textContent = 'Server bận!';
     }
 
     function processImage(blob) {
@@ -591,7 +613,6 @@ In đậm kết quả chính.`;
       resultImagePreview.src = currentImageObjectUrl;
       modalImg.src = currentImageObjectUrl;
 
-      // Kích hoạt Stream tức thì
       streamGeminiAI(blob, appMode);
     }
 

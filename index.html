@@ -3,38 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>SnapText AI - Quét Chữ & Giải Bài Tập Siêu Tốc (Camera Khổ Lớn)</title>
+  <title>SnapText AI - Giải Bài Tập Siêu Tốc (Hiệu Ứng Tuôn Chữ Streaming)</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Marked.js để hiển thị lời giải bài tập đẹp mắt -->
+  <!-- Marked.js để render markdown bài tập -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <style>
-    @keyframes scanAnimation {
-      0% { top: 0%; opacity: 0.8; }
-      50% { top: 96%; opacity: 1; }
-      100% { top: 0%; opacity: 0.8; }
+    /* Hiệu ứng con trỏ nhấp nháy như Chatbox AI */
+    .typing-cursor::after {
+      content: '▋';
+      display: inline-block;
+      vertical-align: baseline;
+      color: #a855f7;
+      animation: blink 0.8s infinite;
+      margin-left: 2px;
     }
-    .scanner-line {
-      position: absolute;
-      left: 0;
-      width: 100%;
-      height: 3px;
-      background: linear-gradient(90deg, transparent, #a855f7, #38bdf8, transparent);
-      box-shadow: 0 0 16px #a855f7;
-      animation: scanAnimation 1.5s infinite ease-in-out;
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
     }
     .torch-active {
       background-color: #f59e0b !important;
       color: #000000 !important;
       box-shadow: 0 0 15px rgba(245, 158, 11, 0.6);
     }
-    /* Style cho lời giải bài tập markdown */
+    /* Style cho lời giải bài tập */
     .prose-ai h1, .prose-ai h2, .prose-ai h3 {
       color: #38bdf8;
       font-weight: 700;
-      margin-top: 1rem;
-      margin-bottom: 0.4rem;
+      margin-top: 0.8rem;
+      margin-bottom: 0.3rem;
     }
     .prose-ai strong {
       color: #fbbf24;
@@ -45,7 +44,7 @@
       margin-bottom: 0.5rem;
     }
     .prose-ai li {
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.2rem;
     }
     .prose-ai p {
       margin-bottom: 0.5rem;
@@ -67,14 +66,14 @@
     <div class="max-w-3xl mx-auto flex items-center justify-between">
       <div class="flex items-center space-x-2.5">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-500/25">
-          <i class="ph-bold ph-graduation-cap text-2xl text-amber-300"></i>
+          <i class="ph-bold ph-lightning text-2xl text-amber-300"></i>
         </div>
         <div>
           <div class="flex items-center space-x-1.5">
             <h1 class="font-bold text-base sm:text-lg leading-tight text-white">SnapText AI</h1>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-purple-500 to-indigo-500 text-white uppercase tracking-wider">Camera Max</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-emerald-500 to-teal-500 text-white uppercase tracking-wider">Stream Real-time</span>
           </div>
-          <p class="text-xs text-slate-400">Camera khổ rộng • Giải bài tập trong 2 giây</p>
+          <p class="text-xs text-slate-400">Chữ tuôn ra tức thì trong 0.5s như Chatbox AI</p>
         </div>
       </div>
 
@@ -89,7 +88,7 @@
   <!-- Màn trợ sáng màn hình cho máy tính -->
   <div id="screenTorchOverlay" class="fixed inset-0 bg-white pointer-events-none z-30 opacity-0 transition-opacity duration-300"></div>
 
-  <!-- Vùng nội dung chính (Đã mở rộng max-w-3xl rộng rãi) -->
+  <!-- Vùng nội dung chính -->
   <main class="flex-1 max-w-3xl w-full mx-auto p-4 flex flex-col">
 
     <!-- ================= GIAO DIỆN 1: CHỤP ẢNH / TẢI ẢNH ================= -->
@@ -107,82 +106,67 @@
         </button>
       </div>
 
-      <!-- Khung Camera SIÊU TO KHỔNG LỒ (Cao từ 520px - 620px bao trọn trang sách A4) -->
+      <!-- Khung Camera SIÊU TO KHỔNG LỒ (520px - 620px) -->
       <div id="cameraContainer" class="relative w-full h-[520px] sm:h-[620px] bg-black rounded-3xl overflow-hidden border-2 border-slate-800 shadow-2xl flex items-center justify-center group transition-all duration-300">
         <video id="cameraVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
         
-        <!-- Placeholder khi camera tắt -->
         <div id="cameraOffPlaceholder" class="hidden absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-950/95 z-20">
           <i class="ph-duotone ph-camera-slash text-6xl text-slate-600 mb-3"></i>
           <p class="text-base font-medium text-slate-200">Camera chưa được bật hoặc chưa cấp quyền</p>
-          <p class="text-xs text-slate-500 mt-1">Bấm cho phép quyền máy ảnh trên trình duyệt</p>
           <button id="btnRetryCamera" class="mt-4 px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-xs font-bold text-white transition shadow-lg shadow-purple-500/25">
             Bật lại Camera
           </button>
         </div>
 
-        <!-- Khung ngắm chụp toàn cảnh (Bao trọn 100% diện tích camera) -->
-        <div id="cropGuideBox" class="pointer-events-none absolute inset-3 sm:inset-4 border-2 border-dashed border-amber-400/90 rounded-2xl flex flex-col justify-between p-3.5 shadow-[0_0_0_9999px_rgba(0,0,0,0.25)] transition-all duration-300">
+        <div id="cropGuideBox" class="pointer-events-none absolute inset-3 sm:inset-4 border-2 border-dashed border-amber-400/90 rounded-2xl flex flex-col justify-between p-3.5 shadow-[0_0_0_9999px_rgba(0,0,0,0.25)]">
           <div class="flex justify-between items-center">
             <span class="text-xs text-amber-300 bg-black/80 px-3 py-1 rounded-lg backdrop-blur border border-amber-500/40 flex items-center space-x-1.5 font-semibold">
-              <i class="ph-bold ph-arrows-out"></i>
-              <span id="guideTag">Camera To Toàn Cảnh (Trọn Trang Sách)</span>
+              <i class="ph-bold ph-lightning"></i>
+              <span id="guideTag">Camera To Toàn Khung (100% diện tích)</span>
             </span>
-            <span class="text-[11px] text-emerald-400 bg-black/70 px-2.5 py-1 rounded-md font-mono">100% Khung Hình</span>
+            <span class="text-[11px] text-emerald-400 bg-black/70 px-2.5 py-1 rounded-md font-mono">Stream 0.5s</span>
           </div>
           <div class="text-center">
             <span class="text-xs sm:text-sm text-white bg-black/80 px-4 py-2 rounded-full backdrop-blur border border-white/20 shadow-lg">
-              Đặt toàn bộ bài tập hoặc trang sách vào đây
+              Chụp đề bài để chữ tuôn ra tức thì
             </span>
           </div>
           <div class="text-right">
-            <span class="text-[11px] text-slate-300 bg-black/70 px-2.5 py-1 rounded-md">Gemini 3.8 Flash • Siêu Tốc</span>
+            <span class="text-[11px] text-slate-300 bg-black/70 px-2.5 py-1 rounded-md">Gemini 3.8 Flash Stream</span>
           </div>
         </div>
 
-        <!-- Cụm nút công cụ nổi trên camera (ĐÈN FLASH + ĐỔI CAMERA + PHÓNG TO) -->
         <div class="absolute top-4 right-4 flex space-x-2.5 z-10">
-          <!-- Nút Đèn Flash -->
           <button id="btnTorch" title="Bật/Tắt Đèn Flash" class="w-12 h-12 rounded-full bg-black/75 backdrop-blur hover:bg-black text-white flex items-center justify-center transition border border-white/20 active:scale-95 shadow-xl">
             <i id="torchIcon" class="ph-bold ph-flashlight text-2xl"></i>
           </button>
-
-          <!-- Nút Đổi Camera trước / sau -->
           <button id="btnSwitchCamera" title="Đổi camera trước / sau" class="w-12 h-12 rounded-full bg-black/75 backdrop-blur hover:bg-black text-white flex items-center justify-center transition border border-white/20 active:scale-95 shadow-xl">
             <i class="ph-bold ph-arrows-clockwise text-2xl"></i>
           </button>
         </div>
       </div>
 
-      <!-- Các nút thao tác -->
+      <!-- Nút thao tác -->
       <div class="grid grid-cols-2 gap-3 pt-1">
-        <!-- Nút Chụp Ảnh Ngay -->
         <button id="btnCapture" class="col-span-2 py-4 px-4 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:opacity-95 active:scale-[0.99] font-bold text-white shadow-xl shadow-purple-600/30 flex items-center justify-center space-x-2.5 transition text-base sm:text-lg">
-          <i id="btnCaptureIcon" class="ph-bold ph-lightning text-2xl text-amber-300"></i>
-          <span id="btnCaptureText">Chụp & Giải Siêu Tốc (2 Giây)</span>
+          <i id="btnCaptureIcon" class="ph-bold ph-lightning text-2xl text-amber-300 animate-pulse"></i>
+          <span id="btnCaptureText">Chụp & Giải Tức Thì (Stream 0.5s)</span>
         </button>
 
-        <!-- Chọn ảnh từ máy -->
         <label class="cursor-pointer py-3.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] border border-slate-800 flex items-center justify-center space-x-2 text-slate-200 transition text-xs sm:text-sm font-medium">
           <i class="ph-bold ph-image text-xl text-blue-400"></i>
           <span>Chọn đề bài từ máy</span>
           <input type="file" id="fileInput" accept="image/*" class="hidden" />
         </label>
 
-        <!-- Dán ảnh (Ctrl+V) -->
         <button id="btnPaste" class="py-3.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] border border-slate-800 flex items-center justify-center space-x-2 text-slate-200 transition text-xs sm:text-sm font-medium">
           <i class="ph-bold ph-clipboard-text text-xl text-indigo-400"></i>
           <span>Dán đề bài (Ctrl+V)</span>
         </button>
       </div>
-
-      <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-3 text-xs text-slate-400 flex items-center space-x-2">
-        <i class="ph-fill ph-check-circle text-emerald-400 text-lg shrink-0"></i>
-        <span><b>Camera To Toàn Khung:</b> Không bị cắt viền mép, chụp trọn toàn bộ mặt giấy thi, sách giáo khoa hoặc màn hình máy tính!</span>
-      </div>
     </section>
 
-    <!-- ================= GIAO DIỆN 2: KẾT QUẢ GIẢI BÀI TẬP ================= -->
+    <!-- ================= GIAO DIỆN 2: KẾT QUẢ GIẢI BÀI TẬP (STREAMING REALTIME) ================= -->
     <section id="resultScreen" class="hidden flex-1 flex flex-col space-y-3.5">
       
       <!-- Top Bar -->
@@ -191,9 +175,9 @@
           <i class="ph-bold ph-arrow-left"></i>
           <span>Chụp câu khác</span>
         </button>
-        <span class="text-xs text-amber-300 font-semibold flex items-center space-x-1.5 bg-purple-950/80 border border-purple-800/60 px-3 py-1.5 rounded-full">
-          <i class="ph-fill ph-check-circle text-emerald-400"></i>
-          <span>AI đã giải xong bài tập!</span>
+        <span id="streamingStatusBadge" class="text-xs text-amber-300 font-semibold flex items-center space-x-1.5 bg-purple-950/80 border border-purple-800/60 px-3 py-1.5 rounded-full">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          <span id="streamingStatusText">AI đang viết bài giải...</span>
         </span>
       </div>
 
@@ -201,8 +185,8 @@
       <div class="bg-slate-900 rounded-xl border border-slate-800 p-2.5 flex items-center space-x-3">
         <img id="resultImagePreview" src="" alt="Đề bài" class="w-16 h-16 object-cover rounded-lg border border-slate-700 cursor-pointer shadow hover:opacity-85 transition" title="Bấm để xem ảnh lớn" />
         <div class="flex-1 min-w-0">
-          <p class="text-xs font-semibold text-white">Ảnh đề bài vừa chụp</p>
-          <p class="text-[11px] text-slate-400 truncate mt-0.5">Bấm vào ảnh để soi lớn đề bài</p>
+          <p class="text-xs font-semibold text-white">Ảnh đề bài vừa gửi</p>
+          <p class="text-[11px] text-slate-400 truncate mt-0.5">Nhấp vào ảnh để xem kích thước lớn</p>
           <button id="btnReOcr" class="mt-1 text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center space-x-1">
             <i class="ph-bold ph-arrows-clockwise"></i>
             <span>Giải lại bài này</span>
@@ -210,12 +194,12 @@
         </div>
       </div>
 
-      <!-- Khung Lời giải Render Markdown -->
-      <div class="flex-1 flex flex-col min-h-[400px] bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+      <!-- Khung Lời giải Render Markdown Tuôn Chữ Realtime -->
+      <div class="flex-1 flex flex-col min-h-[420px] bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
         <div class="px-4 py-2.5 bg-slate-800/90 border-b border-slate-700/80 flex items-center justify-between">
           <span class="text-xs font-semibold text-slate-200 flex items-center space-x-1.5">
-            <i class="ph-bold ph-sparkle text-amber-400"></i>
-            <span id="solutionTitle">Lời giải chi tiết từ Gia sư AI</span>
+            <i class="ph-bold ph-sparkle text-amber-400 animate-spin"></i>
+            <span id="solutionTitle">Gia sư AI đang viết lời giải...</span>
           </span>
           <button id="btnSpeak" title="Đọc lời giải" class="px-2.5 py-1 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition text-xs flex items-center space-x-1">
             <i class="ph-bold ph-speaker-high"></i>
@@ -223,7 +207,9 @@
           </button>
         </div>
 
-        <div id="solutionRendered" class="flex-1 p-5 overflow-y-auto text-slate-100 text-sm sm:text-base leading-relaxed prose-ai"></div>
+        <div id="solutionRendered" class="flex-1 p-5 overflow-y-auto text-slate-100 text-sm sm:text-base leading-relaxed prose-ai typing-cursor">
+          <p class="text-slate-400 italic">Đang kết nối đến Gemini 3.8 Flash...</p>
+        </div>
       </div>
 
       <!-- Nút Copy -->
@@ -256,7 +242,7 @@
         </div>
         <div>
           <h3 class="font-bold text-white text-base">Cài đặt Gemini API Key</h3>
-          <p class="text-xs text-slate-400">Tự động kích hoạt Gemini 3.8 Flash siêu tốc</p>
+          <p class="text-xs text-slate-400">Tự động kích hoạt Gemini 3.8 Flash Stream 0.5s</p>
         </div>
       </div>
 
@@ -268,23 +254,6 @@
       <button id="btnSaveApiKey" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold text-white text-sm transition shadow-lg shadow-purple-600/25">
         Lưu & Sử dụng
       </button>
-    </div>
-  </div>
-
-  <!-- Loading Animation -->
-  <div id="loadingOverlay" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex flex-col items-center justify-center p-6 text-center">
-    <div class="relative w-20 h-20 mb-6">
-      <div class="absolute inset-0 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center overflow-hidden">
-        <i class="ph-duotone ph-lightning text-4xl text-amber-400 animate-bounce"></i>
-        <div class="scanner-line"></div>
-      </div>
-    </div>
-
-    <h3 id="ocrStatusText" class="text-lg font-bold text-slate-100 mb-1">Gemini 3.8 đang giải bài tập...</h3>
-    <p id="ocrSubText" class="text-xs text-slate-400 max-w-xs mb-4">Tối ưu tốc độ phản hồi chỉ trong 2-3 giây</p>
-
-    <div class="w-64 bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700">
-      <div id="ocrProgressBar" class="h-full bg-gradient-to-r from-purple-500 via-amber-400 to-blue-500 transition-all duration-300" style="width: 50%"></div>
     </div>
   </div>
 
@@ -311,7 +280,7 @@
     let appMode = 'solve';
     let currentProcessedBlob = null;
     let currentImageObjectUrl = null;
-    let currentResultRaw = '';
+    let currentStreamedText = '';
 
     const video = document.getElementById('cameraVideo');
     const cameraOffPlaceholder = document.getElementById('cameraOffPlaceholder');
@@ -335,17 +304,14 @@
     const resultImagePreview = document.getElementById('resultImagePreview');
     const solutionRendered = document.getElementById('solutionRendered');
     const solutionTitle = document.getElementById('solutionTitle');
+    const streamingStatusBadge = document.getElementById('streamingStatusBadge');
+    const streamingStatusText = document.getElementById('streamingStatusText');
     const btnCopyText = document.getElementById('btnCopyText');
     const copyBtnText = document.getElementById('copyBtnText');
     const copyIcon = document.getElementById('copyIcon');
     const btnDownloadTxt = document.getElementById('btnDownloadTxt');
     const btnSpeak = document.getElementById('btnSpeak');
     const btnReOcr = document.getElementById('btnReOcr');
-
-    const loadingOverlay = document.getElementById('loadingOverlay');
-    const ocrStatusText = document.getElementById('ocrStatusText');
-    const ocrSubText = document.getElementById('ocrSubText');
-    const ocrProgressBar = document.getElementById('ocrProgressBar');
 
     const toast = document.getElementById('toast');
     const toastMsg = document.getElementById('toastMsg');
@@ -367,19 +333,17 @@
       if (mode === 'solve') {
         tabModeSolve.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 transition bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/25';
         tabModeOcr.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 transition bg-slate-800 text-slate-400 hover:text-white';
-        btnCaptureText.textContent = 'Chụp & Giải Siêu Tốc (2 Giây)';
-        btnCaptureIcon.className = 'ph-bold ph-lightning text-2xl text-amber-300';
-        guideTag.textContent = 'Camera To Toàn Cảnh (Trọn Trang Sách)';
+        btnCaptureText.textContent = 'Chụp & Giải Tức Thì (Stream 0.5s)';
+        btnCaptureIcon.className = 'ph-bold ph-lightning text-2xl text-amber-300 animate-pulse';
+        guideTag.textContent = 'Camera To Toàn Khung (100% diện tích)';
         copyBtnText.textContent = 'Sao Chép Lời Giải';
-        solutionTitle.textContent = 'Lời giải chi tiết từ Gia sư AI';
       } else {
         tabModeOcr.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 transition bg-blue-600 text-white shadow-lg shadow-blue-500/25';
         tabModeSolve.className = 'py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center space-x-2 transition bg-slate-800 text-slate-400 hover:text-white';
-        btnCaptureText.textContent = 'Chụp & Chép Chữ (1 Giây)';
+        btnCaptureText.textContent = 'Chụp & Chép Chữ (Stream 0.5s)';
         btnCaptureIcon.className = 'ph-bold ph-text-aa text-2xl text-white';
-        guideTag.textContent = 'Camera To Toàn Cảnh (Trọn Trang Sách)';
+        guideTag.textContent = 'Camera To Toàn Khung (100% diện tích)';
         copyBtnText.textContent = 'Sao Chép Văn Bản';
-        solutionTitle.textContent = 'Nội dung văn bản trích xuất';
       }
     }
 
@@ -496,36 +460,41 @@
       });
     }
 
-    // GỌI GEMINI 3.8 FLASH SIÊU TỐC
-    async function callGeminiSpeed(blob, mode = 'solve') {
+    // ⚡ STREAMING REAL-TIME TUÔN CHỮ TỨC THÌ (GIỐNG CHATGPT / GEMINI CHAT)
+    async function streamGeminiAI(blob, mode = 'solve') {
       const apiKey = getStoredApiKey();
       if (!apiKey) {
-        loadingOverlay.classList.add('hidden');
         apiKeyModal.classList.remove('hidden');
         showToast('Vui lòng nhập API Key để dùng AI!', true);
-        return null;
+        return;
       }
 
-      ocrStatusText.textContent = mode === 'solve' ? 'Gemini 3.8 đang giải bài tập...' : 'Đang bóc tách chữ...';
-      ocrSubText.textContent = 'Đang xử lý siêu tốc trong 2 giây';
-      ocrProgressBar.style.width = '60%';
+      // CHUYỂN SANG MÀN HÌNH KẾT QUẢ NGAY LẬP TỨC (KHÔNG BẮT NGƯỜI DÙNG ĐỢI LOADING)
+      captureScreen.classList.add('hidden');
+      resultScreen.classList.remove('hidden');
+
+      solutionTitle.textContent = mode === 'solve' ? 'Gia sư AI đang viết lời giải...' : 'AI đang bóc tách chữ...';
+      solutionRendered.className = 'flex-1 p-5 overflow-y-auto text-slate-100 text-sm sm:text-base leading-relaxed prose-ai typing-cursor';
+      solutionRendered.innerHTML = '<p class="text-purple-300 italic animate-pulse">⚡ Đang kết nối Mắt thần Gemini 3.8 Flash...</p>';
+      streamingStatusBadge.className = 'text-xs text-amber-300 font-semibold flex items-center space-x-1.5 bg-purple-950/80 border border-purple-800/60 px-3 py-1.5 rounded-full';
+      streamingStatusText.textContent = 'AI đang viết lời giải...';
 
       const base64Data = await blobToBase64(blob);
 
       let prompt = '';
       if (mode === 'solve') {
-        prompt = `Bạn là gia sư AI. Hãy giải nhanh và chính xác bài tập trong bức ảnh này:
+        prompt = `Bạn là gia sư AI. Hãy giải bài tập trong bức ảnh này thật nhanh và súc tích:
 ### 1. 🎯 ĐÁP ÁN:
-(Nếu trắc nghiệm: Ghi rõ Chọn A, B, C hoặc D kèm phương án. Nếu tự luận: Ghi kết quả số cuối cùng).
+(Nếu trắc nghiệm: Ghi rõ Chọn A, B, C hoặc D. Nếu tự luận: Ghi kết quả số).
 
 ### 2. 💡 LỜI GIẢI CHI TIẾT:
-(Trình bày từng bước logic, công thức rõ ràng, dễ hiểu).
+(Trình bày logic từng bước, ghi rõ công thức ngắn gọn, dễ hiểu).
 
 ### 3. 📌 GHI NHỚ:
-(Công thức hoặc phương pháp mấu chốt để nhớ).
-Trình bày khoa học, in đậm kết quả quan trọng.`;
+(1 câu mấu chốt để nhớ cách giải dạng bài này).
+In đậm kết quả chính.`;
       } else {
-        prompt = `Trích xuất chính xác 100% toàn bộ chữ tiếng Việt có dấu và số trong ảnh này. Giữ nguyên định dạng xuống dòng. Chỉ trả về nội dung chữ, không thêm lời giải thích.`;
+        prompt = `Trích xuất chính xác 100% toàn bộ chữ tiếng Việt có dấu và số trong ảnh này. Giữ nguyên định dạng xuống dòng. Chỉ trả về nội dung chữ, không thêm lời chào.`;
       }
 
       const payload = {
@@ -545,72 +514,88 @@ Trình bày khoa học, in đậm kết quả quan trọng.`;
         generationConfig: {
           temperature: 0.2,
           maxOutputTokens: 2048,
-          thinkingConfig: { thinkingBudget: 0 }
+          thinkingConfig: { thinkingBudget: 0 } // Tắt chờ đợi suy nghĩ
         }
       };
 
-      const models = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash'];
-      let lastError = null;
+      currentStreamedText = '';
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:streamGenerateContent?key=${apiKey}&alt=sse`;
 
-      for (const model of models) {
-        try {
-          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-          const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-            body: JSON.stringify(payload)
-          });
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+          body: JSON.stringify(payload)
+        });
 
-          if (response.ok) {
-            const data = await response.json();
-            return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-          } else {
-            const errData = await response.json().catch(() => ({}));
-            lastError = errData.error?.message || `Lỗi HTTP ${response.status}`;
-          }
-        } catch (e) {
-          lastError = e.message;
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error?.message || `Lỗi HTTP ${response.status}`);
         }
-      }
 
-      throw new Error(lastError || 'Không thể kết nối đến máy chủ AI');
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop(); // giữ dòng cuối chưa trọn vẹn
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const jsonStr = line.slice(6).trim();
+              if (jsonStr && jsonStr !== '[DONE]') {
+                try {
+                  const data = JSON.parse(jsonStr);
+                  const chunk = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                  if (chunk) {
+                    currentStreamedText += chunk;
+                    if (typeof marked !== 'undefined') {
+                      solutionRendered.innerHTML = marked.parse(currentStreamedText);
+                    } else {
+                      solutionRendered.textContent = currentStreamedText;
+                    }
+                    // Tự động cuộn xuống theo dòng chữ
+                    solutionRendered.scrollTop = solutionRendered.scrollHeight;
+                  }
+                } catch (e) {}
+              }
+            }
+          }
+        }
+
+        // Hoàn tất Stream
+        solutionRendered.className = 'flex-1 p-5 overflow-y-auto text-slate-100 text-sm sm:text-base leading-relaxed prose-ai';
+        solutionTitle.textContent = mode === 'solve' ? 'Lời giải chi tiết hoàn tất ✓' : 'Văn bản đã bóc tách ✓';
+        streamingStatusBadge.className = 'text-xs text-emerald-300 font-semibold flex items-center space-x-1.5 bg-emerald-950/80 border border-emerald-800/60 px-3 py-1.5 rounded-full';
+        streamingStatusText.textContent = 'Đã hoàn thành!';
+        showToast('Đã có kết quả!');
+
+      } catch (err) {
+        console.error('Lỗi Stream:', err);
+        solutionRendered.className = 'flex-1 p-5 overflow-y-auto text-rose-300 text-sm';
+        solutionRendered.innerHTML = `<p class="font-bold">❌ Không thể giải bài tập:</p><p class="mt-1">${err.message}</p>`;
+        streamingStatusBadge.className = 'text-xs text-rose-300 font-semibold flex items-center space-x-1.5 bg-rose-950/80 border border-rose-800/60 px-3 py-1.5 rounded-full';
+        streamingStatusText.textContent = 'Gặp lỗi!';
+      }
     }
 
-    async function processImage(blob) {
+    function processImage(blob) {
       currentProcessedBlob = blob;
       if (currentImageObjectUrl) URL.revokeObjectURL(currentImageObjectUrl);
       currentImageObjectUrl = URL.createObjectURL(blob);
       resultImagePreview.src = currentImageObjectUrl;
       modalImg.src = currentImageObjectUrl;
 
-      loadingOverlay.classList.remove('hidden');
-      ocrProgressBar.style.width = '30%';
-
-      try {
-        const text = await callGeminiSpeed(blob, appMode);
-        if (text === null) return;
-
-        currentResultRaw = text;
-        ocrProgressBar.style.width = '100%';
-
-        captureScreen.classList.add('hidden');
-        resultScreen.classList.remove('hidden');
-
-        if (typeof marked !== 'undefined') {
-          solutionRendered.innerHTML = marked.parse(text);
-        } else {
-          solutionRendered.textContent = text;
-        }
-
-        showToast(appMode === 'solve' ? 'Đã giải xong bài tập!' : 'Đã lấy chữ thành công!');
-      } catch (err) {
-        showToast('Lỗi: ' + (err.message || err), true);
-      } finally {
-        loadingOverlay.classList.add('hidden');
-      }
+      // Kích hoạt Stream tức thì
+      streamGeminiAI(blob, appMode);
     }
 
-    // CHỤP TOÀN KHUNG HÌNH (100% DIỆN TÍCH CAMERA)
+    // Nén ảnh về 1000px siêu nhẹ (~80KB gửi đi trong 0.05s)
     btnCapture.addEventListener('click', () => {
       if (!videoStream || video.videoWidth === 0) {
         showToast('Camera chưa sẵn sàng!', true);
@@ -620,8 +605,7 @@ Trình bày khoa học, in đậm kết quả quan trọng.`;
       const vw = video.videoWidth;
       const vh = video.videoHeight;
 
-      // Giữ trọn 100% diện tích camera
-      const MAX_DIM = 1200;
+      const MAX_DIM = 1000;
       let w = vw, h = vh;
       if (w > MAX_DIM || h > MAX_DIM) {
         if (w > h) { h = Math.round((h * MAX_DIM) / w); w = MAX_DIM; }
@@ -633,7 +617,7 @@ Trình bày khoa học, in đậm kết quả quan trọng.`;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, w, h);
 
-      canvas.toBlob(blob => processImage(blob), 'image/jpeg', 0.85);
+      canvas.toBlob(blob => processImage(blob), 'image/jpeg', 0.82);
     });
 
     fileInput.addEventListener('change', (e) => {
@@ -674,7 +658,7 @@ Trình bày khoa học, in đậm kết quả quan trọng.`;
       img.onload = () => {
         const canvas = document.getElementById('processCanvas');
         let w = img.width, h = img.height;
-        const MAX_DIM = 1200;
+        const MAX_DIM = 1000;
         if (w > MAX_DIM || h > MAX_DIM) {
           if (w > h) { h = Math.round((h * MAX_DIM) / w); w = MAX_DIM; }
           else { w = Math.round((w * MAX_DIM) / h); h = MAX_DIM; }
@@ -683,7 +667,7 @@ Trình bày khoa học, in đậm kết quả quan trọng.`;
         canvas.height = h;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, w, h);
-        canvas.toBlob(b => processImage(b), 'image/jpeg', 0.85);
+        canvas.toBlob(b => processImage(b), 'image/jpeg', 0.82);
       };
       img.src = URL.createObjectURL(blob);
     }
@@ -699,9 +683,9 @@ Trình bày khoa học, in đậm kết quả quan trọng.`;
     });
 
     btnCopyText.addEventListener('click', async () => {
-      if (!currentResultRaw) return;
+      if (!currentStreamedText) return;
       try {
-        await navigator.clipboard.writeText(currentResultRaw);
+        await navigator.clipboard.writeText(currentStreamedText);
         copyBtnText.textContent = 'Đã sao chép!';
         showToast('Đã sao chép toàn bộ lời giải!');
         setTimeout(() => copyBtnText.textContent = appMode === 'solve' ? 'Sao Chép Lời Giải' : 'Sao Chép Văn Bản', 2000);
@@ -711,8 +695,8 @@ Trình bày khoa học, in đậm kết quả quan trọng.`;
     });
 
     btnDownloadTxt.addEventListener('click', () => {
-      if (!currentResultRaw) return;
-      const blob = new Blob([currentResultRaw], { type: 'text/plain;charset=utf-8' });
+      if (!currentStreamedText) return;
+      const blob = new Blob([currentStreamedText], { type: 'text/plain;charset=utf-8' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = `loi_giai_ai_${Date.now().toString().slice(-4)}.txt`;
@@ -722,10 +706,10 @@ Trình bày khoa học, in đậm kết quả quan trọng.`;
     });
 
     btnSpeak.addEventListener('click', () => {
-      if (!currentResultRaw) return;
+      if (!currentStreamedText) return;
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(currentResultRaw);
+        const u = new SpeechSynthesisUtterance(currentStreamedText);
         u.lang = 'vi-VN';
         window.speechSynthesis.speak(u);
         showToast('Đang phát âm thanh đọc...');
